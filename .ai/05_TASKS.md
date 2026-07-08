@@ -194,6 +194,7 @@ Phase 8 (Documentation) ← can run in parallel with Phase 7
 
 | Date | Change |
 |------|--------|
+<<<<<<< HEAD
 | 2025-07-08 | Initial TASKS.md created |
 | 2025-07-08 | Updated with architecture decisions (D011-D016) |
 | 2025-07-08 | Added exception hierarchy to Phase 1 |
@@ -204,3 +205,12 @@ Phase 8 (Documentation) ← can run in parallel with Phase 7
 | 2025-07-08 | Phase 1 completed - all foundation work done |
 | 2025-07-08 | 50 tests passing |
 | 2025-07-08 | CLI functional with all commands |
+=======
+| 2026-07-08 | Initial TASKS.md created |
+| 2026-07-08 | Updated with architecture decisions (D011-D016) |
+| 2026-07-08 | Added exception hierarchy to Phase 1 |
+| 2026-07-08 | Added core module to Phase 1 |
+| 2026-07-08 | Added ARCHITECTURE.md to Phase 1 |
+| 2026-07-08 | Created .ai/ directory structure |
+| 2026-07-08 | Moved all project files to .ai/ |
+>>>>>>> fd5438a9a42901cddae6ccd191cff531f23a81c7
