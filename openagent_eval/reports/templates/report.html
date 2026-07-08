@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        header .meta { opacity: 0.8; font-size: 0.9rem; }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .stat {
+            text-align: center;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+        .stat .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .stat .label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: var(--bg);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+        tr:hover { background: var(--bg); }
+        .score {
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+        }
+        .score-high { background: #dcfce7; color: var(--success); }
+        .score-mid { background: #fef3c7; color: var(--warning); }
+        .score-low { background: #fee2e2; color: var(--danger); }
+        .error-badge {
+            background: #fee2e2;
+            color: var(--danger);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .result-item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .result-item h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+        .result-item .question { color: var(--text-muted); font-style: italic; }
+        .result-item .answer { margin-top: 0.5rem; }
+        .result-item .scores {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        footer a { color: var(--primary); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>{{ title }}</h1>
+            <div class="meta">Generated on {{ timestamp }}</div>
+        </header>
+
+        <!-- Summary -->
+        <div class="card">
+            <h2>Summary</h2>
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="value">{{ total_items }}</div>
+                    <div class="label">Total Items</div>
+                </div>
+                <div class="stat">
+                    <div class="value" style="color: var(--success);">{{ successful }}</div>
+                    <div class="label">Successful</div>
+                </div>
+                <div class="stat">
+                    <div class="value" style="color: var(--danger);">{{ failed }}</div>
+                    <div class="label">Failed</div>
+                </div>
+                {% if overall_score is not none %}
+                <div class="stat">
+                    <div class="value">{{ "%.4f"|format(overall_score) }}</div>
+                    <div class="label">Overall Score</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Metrics -->
+        {% if metrics %}
+        <div class="card">
+            <h2>Metrics</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th style="text-align: right;">Average Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for name, score in metrics|dictsort %}
+                    <tr>
+                        <td>{{ name }}</td>
+                        <td style="text-align: right;">
+                            {% if score >= 0.8 %}
+                            <span class="score score-high">{{ "%.4f"|format(score) }}</span>
+                            {% elif score >= 0.5 %}
+                            <span class="score score-mid">{{ "%.4f"|format(score) }}</span>
+                            {% else %}
+                            <span class="score score-low">{{ "%.4f"|format(score) }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Errors -->
+        {% if errors %}
+        <div class="card">
+            <h2>Error Analysis</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Error Type</th>
+                        <th style="text-align: right;">Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for err_type, count in errors|dictsort %}
+                    <tr>
+                        <td><span class="error-badge">{{ err_type }}</span></td>
+                        <td style="text-align: right;">{{ count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Sample Results -->
+        {% if results %}
+        <div class="card">
+            <h2>Sample Results</h2>
+            {% for item in results %}
+            <div class="result-item">
+                <h3>Result #{{ loop.index }}</h3>
+                <div class="question">{{ item.question }}</div>
+                {% if item.answer %}
+                <div class="answer"><strong>Answer:</strong> {{ item.answer }}</div>
+                {% endif %}
+                {% if item.metrics %}
+                <div class="scores">
+                    {% for metric_name, score in item.metrics|dictsort %}
+                    <span class="score {% if score >= 0.8 %}score-high{% elif score >= 0.5 %}score-mid{% else %}score-low{% endif %}">
+                        {{ metric_name }}: {{ "%.4f"|format(score) }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Configuration -->
+        <div class="card">
+            <h2>Configuration</h2>
+            <table>
+                <tbody>
+                    <tr><td><strong>Dataset</strong></td><td>{{ config.dataset.path }}</td></tr>
+                    <tr><td><strong>LLM Provider</strong></td><td>{{ config.llm.provider }}/{{ config.llm.model }}</td></tr>
+                    <tr><td><strong>Retriever</strong></td><td>{{ config.retriever.provider }}</td></tr>
+                    <tr><td><strong>Output Format</strong></td><td>{{ config.report.output.value }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer>
+            <p>Report generated by <a href="https://github.com/OpenAgentHQ/openagent-eval">OpenAgent Eval</a> v{{ version }}</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -7,16 +7,6 @@
 
 ## TODO
 
-### Phase 4: Reports
-- [ ] Define ReportGenerator interface
-- [ ] Implement terminal report (Rich)
-- [ ] Implement Markdown report
-- [ ] Implement HTML report (Jinja2)
-- [ ] Implement JSON report
-- [ ] Create failure analysis reporting
-- [ ] Implement experiment comparison reports
-- [ ] Write unit tests for all reporters
-
 ### Phase 5: Providers
 - [ ] Define LLMProvider interface
 - [ ] Define Retriever interface
@@ -72,6 +62,16 @@
 ---
 
 ## COMPLETED
+
+### Phase 4: Reports
+- [x] Define ReportGenerator interface
+- [x] Implement terminal report (Rich)
+- [x] Implement Markdown report
+- [x] Implement HTML report (Jinja2)
+- [x] Implement JSON report
+- [x] Create failure analysis reporting
+- [x] Implement experiment comparison reports
+- [x] Write unit tests for all reporters (78 tests)
 
 ### Phase 1: Project Foundation
 - [x] Initialize project with `uv init`
@@ -202,3 +202,4 @@ Phase 8 (Documentation) ← can run in parallel with Phase 7
 | 2026-07-08 | Phase 2 completed - Data Layer implemented |
 | 2026-07-08 | Phase 3 completed - Metrics System implemented |
 | 2026-07-08 | 136 tests passing (50 existing + 86 new metrics tests) |
+| 2026-07-08 | Phase 4 completed - Reports System implemented (78 new tests) |
