@@ -61,6 +61,15 @@ oaeval = "openagent_eval.cli.main:app"
 [project.entry-points."openagent_eval.providers"]
 # Custom providers can be registered here
 
+[project.entry-points."openagent_eval.retrievers"]
+# Custom retrievers can be registered here
+
+[project.entry-points."openagent_eval.dataset_loaders"]
+# Custom dataset loaders can be registered here
+
+[project.entry-points."openagent_eval.report_generators"]
+# Custom report generators can be registered here
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
