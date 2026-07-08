@@ -577,6 +577,102 @@ class MetricResult:
 5. **ALWAYS** communicate through interfaces
 6. **ALWAYS** use meaningful error messages
 7. **ALWAYS** update project files after major milestones
+8. **NEVER** develop directly on the `main` branch
+9. **ALWAYS** create a new branch for every feature/task
+10. **ALWAYS** create a Pull Request for review (never merge yourself)
+
+---
+
+## Git Workflow Rules (MANDATORY)
+
+GitHub Flow must be followed throughout the project.
+
+### Branch Rules
+
+- **NEVER** develop directly on the `main` branch
+- The `main` branch must always remain stable and production-ready
+- For every new feature, enhancement, bug fix, refactor, documentation update, test, or any other development task:
+  1. Create a new Git branch before making any code changes
+  2. Perform all work on that branch
+  3. Push the branch to the remote repository when the task is complete
+  4. Create a Pull Request targeting the `main` branch
+  5. **Do NOT merge the Pull Request** - the user will review and merge manually
+
+### Branch Naming Convention
+
+```
+feature/{description}      # New features
+fix/{description}          # Bug fixes
+docs/{description}         # Documentation updates
+refactor/{description}     # Code refactoring
+test/{description}         # Test additions/updates
+chore/{description}        # Maintenance tasks
+```
+
+Examples:
+- `feature/initial-scaffolding`
+- `fix/config-validation-error`
+- `docs/add-cli-specification`
+- `refactor/metric-interface`
+- `test/add-unit-tests-metrics`
+
+### Pull Request Requirements
+
+Every Pull Request must include a clear and professional description:
+
+```markdown
+## Summary
+
+[Clear description of what was implemented]
+
+## Motivation
+
+[Why this change was needed]
+
+## Files Modified
+
+- `file1.py` - Description of changes
+- `file2.py` - Description of changes
+
+## Architectural Decisions
+
+[Any important design decisions made]
+
+## Breaking Changes
+
+[Any breaking changes, or "None"]
+
+## Testing
+
+[What testing was performed]
+
+## Remaining TODOs
+
+[Any remaining work, or "None"]
+
+## Assumptions & Limitations
+
+[Any assumptions or limitations]
+```
+
+### PR Workflow
+
+```
+1. Create branch from main
+   git checkout -b feature/initial-scaffolding
+
+2. Make changes and commit
+   git add .
+   git commit -m "feat: Description"
+
+3. Push to remote
+   git push origin feature/initial-scaffolding
+
+4. Create Pull Request (via GitHub CLI or web)
+   gh pr create --title "Feature: Description" --body "..."
+
+5. WAIT for review (do NOT merge)
+```
 
 ---
 
