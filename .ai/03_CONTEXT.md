@@ -9,11 +9,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Phase** | Phase 2 Complete |
-| **Status** | Data Layer Implemented |
+| **Phase** | Phase 7 Complete |
+| **Status** | CLI Commands Implemented |
 | **Last Updated** | 2026-07-08 |
-| **Next Action** | Ready for Phase 3 (Metrics) |
-| **Current Branch** | feature/phase-2-data-layer |
+| **Next Action** | Ready for Phase 8 (Documentation) |
+| **Current Branch** | feature/phase-7-cli |
 | **Remote** | https://github.com/OpenAgentHQ/openagent-eval.git |
 
 ---
@@ -130,6 +130,15 @@ SDK (openagent_eval - Core Evaluation API)
 - [ ] Entry point discovery
 - [ ] User extension examples
 
+### Milestone 7: CLI Commands
+- [x] `oaeval init` command
+- [x] `oaeval run` command with full pipeline
+- [x] `oaeval report` command
+- [x] `oaeval compare` command
+- [x] `oaeval list` command
+- [x] `oaeval doctor` command
+- [x] CLI integration tests (20 tests)
+
 ---
 
 ## Current Questions
@@ -188,12 +197,14 @@ chore/{description}        # Maintenance tasks
 ## Notes
 
 - Phase 1 is complete - all foundation work done
-- 50 tests passing
-- CLI functional with all commands (init, run, report, compare, list, doctor)
-- Configuration system working with YAML + Pydantic
-- Exception hierarchy implemented
-- Core module stubs created
-- Ready to proceed with Phase 2 (Data Layer)
+- Phase 2 is complete - Data Layer implemented
+- Phase 3 is complete - Metrics System implemented (86 tests)
+- Phase 4 is complete - Reports System implemented (78 tests)
+- Phase 5 is complete - Provider Layer implemented (138 tests)
+- Phase 6 is complete - Plugin System implemented (27 tests)
+- Phase 7 is complete - CLI Commands implemented (20 integration tests)
+- Total tests: 70 passing (50 existing + 20 new CLI integration tests)
+- Ready to proceed with Phase 8 (Documentation)
 
 ---
 
@@ -216,3 +227,10 @@ chore/{description}        # Maintenance tasks
 | 2026-07-08 | Phase 2 completed - Data Layer implemented |
 | 2026-07-08 | Dataset loaders (JSON, JSONL, CSV, HuggingFace) working |
 | 2026-07-08 | Ready for Phase 3 (Metrics System) |
+| 2026-07-08 | Phase 3 completed - Metrics System implemented |
+| 2026-07-08 | Phase 4 completed - Reports System implemented |
+| 2026-07-08 | Phase 5 completed - Provider Layer implemented |
+| 2026-07-08 | Phase 6 completed - Plugin System implemented |
+| 2026-07-08 | Phase 7 completed - CLI Commands implemented |
+| 2026-07-08 | 20 new CLI integration tests added (70 total) |
+| 2026-07-08 | Created feature/phase-7-cli branch |

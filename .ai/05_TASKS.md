@@ -69,13 +69,13 @@
 - [ ] Write unit tests for plugin system
 
 ### Phase 7: CLI Commands
-- [ ] Implement `oaeval init`
-- [ ] Implement `oaeval run`
-- [ ] Implement `oaeval report`
-- [ ] Implement `oaeval compare`
-- [ ] Implement `oaeval list`
-- [ ] Implement `oaeval doctor`
-- [ ] Write CLI integration tests
+- [x] Implement `oaeval init`
+- [x] Implement `oaeval run`
+- [x] Implement `oaeval report`
+- [x] Implement `oaeval compare`
+- [x] Implement `oaeval list`
+- [x] Implement `oaeval doctor`
+- [x] Write CLI integration tests
 
 ### Phase 8: Documentation
 - [ ] Create docs/01_vision.md
@@ -103,6 +103,15 @@
 ---
 
 ## COMPLETED
+
+### Phase 7: CLI Commands
+- [x] Implement `oaeval init`
+- [x] Implement `oaeval run`
+- [x] Implement `oaeval report`
+- [x] Implement `oaeval compare`
+- [x] Implement `oaeval list`
+- [x] Implement `oaeval doctor`
+- [x] Write CLI integration tests
 
 ### Phase 1: Project Foundation
 - [x] Initialize project with `uv init`
@@ -203,4 +212,9 @@ Phase 8 (Documentation) ← can run in parallel with Phase 7
 | 2026-07-08 | Moved all project files to .ai/ |
 | 2026-07-08 | Phase 1 completed - all foundation work done |
 | 2026-07-08 | Phase 2 completed - Data Layer implemented |
-| 2026-07-08 | Starting Phase 3 - Metrics System |
+| 2026-07-08 | Phase 3 completed - Metrics System implemented |
+| 2026-07-08 | Phase 4 completed - Reports System implemented |
+| 2026-07-08 | Phase 5 completed - Provider Layer implemented |
+| 2026-07-08 | Phase 6 completed - Plugin System implemented |
+| 2026-07-08 | Phase 7 completed - CLI Commands implemented |
+| 2026-07-08 | 20 new CLI integration tests added |
