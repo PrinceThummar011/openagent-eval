@@ -1,36 +1,35 @@
-"""Dataset loaders for OpenAgent Eval.
+"""Dataset loading and validation module.
 
-This module provides loaders for various dataset formats:
-- JSON (.json)
-- JSONL (.jsonl)
-- CSV (.csv)
+This module provides dataset loaders for various formats (JSON, JSONL, CSV, HuggingFace)
+and data models for validation.
 
 Usage:
-    >>> from openagent_eval.datasets import load_dataset, JsonDatasetLoader
-    >>> from openagent_eval.config.models import DatasetConfig
-    >>>
-    >>> # Using the factory function
-    >>> config = DatasetConfig(path="data/questions.json", limit=100)
-    >>> items = load_dataset(config)
-    >>>
-    >>> # Using a specific loader directly
-    >>> loader = JsonDatasetLoader()
-    >>> items = loader.load(path=Path("data/questions.json"), limit=100)
+    ```python
+    from openagent_eval.datasets import JSONDatasetLoader, Dataset
+
+    loader = JSONDatasetLoader()
+    dataset = loader.load(Path("data/questions.json"))
+    ```
 """
 
-from openagent_eval.datasets.base import DatasetLoader
-from openagent_eval.datasets.csv_loader import CsvDatasetLoader
-from openagent_eval.datasets.factory import load_dataset
-from openagent_eval.datasets.json_loader import JsonDatasetLoader
-from openagent_eval.datasets.jsonl_loader import JsonlDatasetLoader
-from openagent_eval.datasets.models import Dataset, DatasetItem
+from openagent_eval.datasets.base import BaseDatasetLoader, Dataset, DatasetItem
+from openagent_eval.datasets.csv_loader import CSVDatasetLoader
+from openagent_eval.datasets.hf_loader import HFDatasetLoader
+from openagent_eval.datasets.json_loader import JSONDatasetLoader
+from openagent_eval.datasets.jsonl_loader import JSONLDatasetLoader
+from openagent_eval.datasets.models import DatasetItemModel, DatasetModel
 
 __all__ = [
-    "DatasetLoader",
-    "DatasetItem",
+    # Core types
+    "BaseDatasetLoader",
     "Dataset",
-    "JsonDatasetLoader",
-    "JsonlDatasetLoader",
-    "CsvDatasetLoader",
-    "load_dataset",
+    "DatasetItem",
+    # Pydantic models
+    "DatasetItemModel",
+    "DatasetModel",
+    # Loaders
+    "JSONDatasetLoader",
+    "JSONLDatasetLoader",
+    "CSVDatasetLoader",
+    "HFDatasetLoader",
 ]

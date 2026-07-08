@@ -1,232 +1,167 @@
-"""Comparison report generator for side-by-side experiment analysis."""
+"""Experiment comparison report generator.
+
+This module provides comparison reporting for evaluating changes between
+two experiment runs, showing metric deltas and statistical significance.
+"""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Any
 
-if TYPE_CHECKING:
-    from openagent_eval.core.engine import EvaluationReport
+from openagent_eval.reports.base import ExperimentComparison, ReportGenerator
 
 
-class ComparisonReportGenerator:
-    """Compare two EvaluationReport objects side-by-side.
+class ComparisonReport(ReportGenerator):
+    """Generate side-by-side experiment comparison reports.
 
-    Shows absolute and percentage differences for every metric, with
-    colour-coding for improvements and regressions.
+    Compares two PipelineResult objects and shows:
+    - Per-metric deltas (improvement/regression)
+    - Overall score comparison
+    - Statistical summary
+    - Winner determination
     """
 
-    name = "comparison"
-    description = "Side-by-side experiment comparison"
+    def generate(self, report: Any) -> str:
+        """Generate a comparison report string.
 
-    # ------------------------------------------------------------------ #
-    # Public API                                                          #
-    # ------------------------------------------------------------------ #
-
-    def generate(
-        self,
-        report_a: EvaluationReport,
-        report_b: EvaluationReport,
-        *,
-        label_a: str = "Experiment A",
-        label_b: str = "Experiment B",
-    ) -> str:
-        """Generate a Markdown comparison report.
+        Note: ``report`` should be an ExperimentComparison object.
 
         Args:
-            report_a: First (baseline) evaluation report.
-            report_b: Second (new) evaluation report.
-            label_a: Display label for the baseline.
-            label_b: Display label for the new experiment.
+            report: ExperimentComparison with baseline and experiment results.
 
         Returns:
-            A Markdown string with the comparison.
+            Formatted comparison report string.
         """
-        sections: list[str] = []
-
-        sections.append(self._header(label_a, label_b))
-        sections.append(self._summary_table(report_a, report_b, label_a, label_b))
-        sections.append(self._metrics_comparison(report_a, report_b, label_a, label_b))
-        sections.append(self._item_comparison(report_a, report_b))
-
-        return "\n\n".join(s for s in sections if s) + "\n"
-
-    def save(
-        self,
-        report_a: EvaluationReport,
-        report_b: EvaluationReport,
-        output_path: Path,
-        *,
-        label_a: str = "Experiment A",
-        label_b: str = "Experiment B",
-    ) -> Path:
-        """Save the comparison report to a file."""
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(
-            self.generate(report_a, report_b, label_a=label_a, label_b=label_b),
-            encoding="utf-8",
-        )
-        return output_path
-
-    # ------------------------------------------------------------------ #
-    # Section builders                                                    #
-    # ------------------------------------------------------------------ #
-
-    def _header(self, label_a: str, label_b: str) -> str:
-        """Return the comparison header."""
-        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-        return (
-            f"# Experiment Comparison\n\n"
-            f"**{label_a}** vs **{label_b}**\n\n"
-            f"Generated: {timestamp}"
-        )
-
-    def _summary_table(
-        self,
-        report_a: EvaluationReport,
-        report_b: EvaluationReport,
-        label_a: str,
-        label_b: str,
-    ) -> str:
-        """Return a summary comparison table."""
-        sa = report_a.summary
-        sb = report_b.summary
-
-        total_a = sa.get("total_items", len(report_a.result.results))
-        total_b = sb.get("total_items", len(report_b.result.results))
-        err_a = sa.get("failed_evaluations", len(report_a.result.errors))
-        err_b = sb.get("failed_evaluations", len(report_b.result.errors))
-
-        rate_a = ((total_a - err_a) / total_a * 100) if total_a > 0 else 0.0
-        rate_b = ((total_b - err_b) / total_b * 100) if total_b > 0 else 0.0
-
-        return (
-            "## Summary\n\n"
-            f"| Metric | {label_a} | {label_b} | Delta |\n"
-            f"|--------|----------|----------|-------|\n"
-            f"| Total Items | {total_a} | {total_b} | {self._delta_str(total_b, total_a)} |\n"
-            f"| Successful | {total_a - err_a} | {total_b - err_b} | "
-            f"{self._delta_str(total_b - err_b, total_a - err_a)} |\n"
-            f"| Failed | {err_a} | {err_b} | {self._delta_str(err_b, err_a)} |\n"
-            f"| Success Rate | {rate_a:.1f}% | {rate_b:.1f}% | "
-            f"{self._pct_delta(rate_b, rate_a)}% |"
-        )
-
-    def _metrics_comparison(
-        self,
-        report_a: EvaluationReport,
-        report_b: EvaluationReport,
-        label_a: str,
-        label_b: str,
-    ) -> str:
-        """Return a metrics-by-metric comparison table."""
-        metrics_a = self._get_metrics(report_a)
-        metrics_b = self._get_metrics(report_b)
-
-        all_keys = sorted(set(metrics_a) | set(metrics_b))
-        if not all_keys:
-            return ""
-
-        lines = [
-            "## Metrics Comparison",
-            "",
-            f"| Metric | {label_a} | {label_b} | Delta | Δ% |",
-            "|--------|----------|----------|-------|----|",
-        ]
-
-        for key in all_keys:
-            val_a = metrics_a.get(key, 0.0)
-            val_b = metrics_b.get(key, 0.0)
-            delta = val_b - val_a
-            pct = ((delta / val_a) * 100) if val_a != 0 else 0.0
-            indicator = self._indicator(delta)
-            lines.append(
-                f"| {key} | {val_a:.4f} | {val_b:.4f} | "
-                f"{self._signed(delta)} | {self._signed(pct)}% {indicator} |"
+        if not isinstance(report, ExperimentComparison):
+            raise TypeError(
+                f"ComparisonReport requires ExperimentComparison, got {type(report).__name__}"
             )
 
-        return "\n".join(lines)
+        lines: list[str] = []
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    def _item_comparison(
-        self,
-        report_a: EvaluationReport,
-        report_b: EvaluationReport,
-    ) -> str:
-        """Return a per-item comparison (questions in both reports)."""
-        results_a = {r.question: r for r in report_a.result.results}
-        results_b = {r.question: r for r in report_b.result.results}
+        # Header
+        lines.append("=" * 60)
+        lines.append("  Experiment Comparison Report")
+        lines.append("=" * 60)
+        lines.append("")
+        lines.append(f"  Generated: {now}")
+        lines.append(f"  Baseline:  {report.baseline_name}")
+        lines.append(f"  Experiment: {report.experiment_name}")
+        lines.append("")
 
-        shared = set(results_a) & set(results_b)
-        if not shared:
-            return ""
+        # Compute metric averages for both
+        baseline_metrics = self._extract_metric_averages(report.baseline_results)
+        experiment_metrics = self._extract_metric_averages(report.experiment_results)
 
-        lines = ["## Per-Item Comparison", ""]
+        # All metric names
+        all_metrics = sorted(set(baseline_metrics) | set(experiment_metrics))
 
-        for question in sorted(shared):
-            ra = results_a[question]
-            rb = results_b[question]
+        if all_metrics:
+            # Metrics comparison table
+            lines.append("METRIC COMPARISON")
+            lines.append("-" * 60)
+            lines.append(
+                f"  {'Metric':<30} {'Baseline':>10} {'Experiment':>10} {'Delta':>10}"
+            )
+            lines.append("  " + "-" * 58)
 
-            lines.append(f"### {question}")
-            lines.append("")
-            lines.append("| Metric | A | B | Δ |")
-            lines.append("|--------|---|---|---|")
+            improved = 0
+            regressed = 0
+            for metric_name in all_metrics:
+                base_val = baseline_metrics.get(metric_name, 0.0)
+                exp_val = experiment_metrics.get(metric_name, 0.0)
+                delta = exp_val - base_val
 
-            all_metrics = sorted(set(ra.metrics) | set(rb.metrics))
-            for m in all_metrics:
-                va = ra.metrics.get(m, 0.0)
-                vb = rb.metrics.get(m, 0.0)
-                delta = vb - va
-                indicator = self._indicator(delta)
+                if delta > 0.001:
+                    indicator = "+"
+                    improved += 1
+                elif delta < -0.001:
+                    indicator = ""
+                    regressed += 1
+                else:
+                    indicator = "="
+
                 lines.append(
-                    f"| {m} | {va:.4f} | {vb:.4f} | "
-                    f"{self._signed(delta)} {indicator} |"
+                    f"  {metric_name:<30} {base_val:>10.4f} {exp_val:>10.4f} "
+                    f"{indicator}{delta:>+9.4f}"
                 )
 
             lines.append("")
 
+            # Summary
+            lines.append("SUMMARY")
+            lines.append("-" * 60)
+            lines.append(f"  Metrics improved:  {improved}")
+            lines.append(f"  Metrics regressed: {regressed}")
+            lines.append(f"  Metrics unchanged: {len(all_metrics) - improved - regressed}")
+            lines.append("")
+
+            # Overall scores
+            if baseline_metrics:
+                base_overall = sum(baseline_metrics.values()) / len(baseline_metrics)
+                lines.append(f"  Baseline overall:    {base_overall:.4f}")
+            if experiment_metrics:
+                exp_overall = sum(experiment_metrics.values()) / len(experiment_metrics)
+                lines.append(f"  Experiment overall:  {exp_overall:.4f}")
+                if baseline_metrics:
+                    overall_delta = exp_overall - base_overall
+                    lines.append(f"  Overall delta:       {overall_delta:+.4f}")
+            lines.append("")
+
+            # Winner
+            if baseline_metrics and experiment_metrics:
+                base_overall = sum(baseline_metrics.values()) / len(baseline_metrics)
+                exp_overall = sum(experiment_metrics.values()) / len(experiment_metrics)
+                if exp_overall > base_overall:
+                    lines.append(f"  >> WINNER: {report.experiment_name}")
+                elif exp_overall < base_overall:
+                    lines.append(f"  >> WINNER: {report.baseline_name}")
+                else:
+                    lines.append("  >> TIE")
+        else:
+            lines.append("  No metrics available for comparison.")
+            lines.append("")
+
+        # Error comparison
+        baseline_errors = len(report.baseline_results.errors)
+        experiment_errors = len(report.experiment_results.errors)
+        if baseline_errors or experiment_errors:
+            lines.append("ERROR COMPARISON")
+            lines.append("-" * 60)
+            lines.append(f"  Baseline errors:  {baseline_errors}")
+            lines.append(f"  Experiment errors: {experiment_errors}")
+            lines.append("")
+
+        # Result count comparison
+        lines.append("RESULT COUNTS")
+        lines.append("-" * 60)
+        lines.append(
+            f"  Baseline results:   {len(report.baseline_results.results)}"
+        )
+        lines.append(
+            f"  Experiment results: {len(report.experiment_results.results)}"
+        )
+        lines.append("")
+        lines.append("=" * 60)
+
         return "\n".join(lines)
 
-    # ------------------------------------------------------------------ #
-    # Utility helpers                                                     #
-    # ------------------------------------------------------------------ #
+    def generate_to_file(self, report: Any, output_path: Path | str) -> Path:
+        """Generate comparison report and write to file.
 
-    @staticmethod
-    def _get_metrics(report: EvaluationReport) -> dict[str, float]:
-        """Extract metric averages from a report."""
-        metrics = report.summary.get("metrics_summary", {})
-        if not metrics:
-            metrics = report.result.summary.get("metrics", {})
-        return dict(metrics) if isinstance(metrics, dict) else {}
+        Args:
+            report: ExperimentComparison with baseline and experiment results.
+            output_path: Path to write the report file.
 
-    @staticmethod
-    def _delta_str(new: float, old: float) -> str:
-        """Format a delta value with sign."""
-        d = new - old
-        if d > 0:
-            return f"+{d:.2f}"
-        return f"{d:.2f}"
-
-    @staticmethod
-    def _signed(value: float) -> str:
-        """Format with explicit sign."""
-        if value > 0:
-            return f"+{value:.4f}"
-        return f"{value:.4f}"
-
-    @staticmethod
-    def _pct_delta(new_pct: float, old_pct: float) -> str:
-        """Format percentage delta."""
-        d = new_pct - old_pct
-        if d > 0:
-            return f"+{d:.2f}"
-        return f"{d:.2f}"
-
-    @staticmethod
-    def _indicator(delta: float) -> str:
-        """Return an emoji indicator for a delta value."""
-        if delta > 0:
-            return ":green_circle:"
-        if delta < 0:
-            return ":red_circle:"
-        return ":white_circle:"
+        Returns:
+            Path to the written file.
+        """
+        path = self._ensure_output_dir(output_path)
+        if not str(path).endswith(".txt"):
+            path = path / "comparison.txt"
+        content = self.generate(report)
+        path.write_text(content, encoding="utf-8")
+        return path

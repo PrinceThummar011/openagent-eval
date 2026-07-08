@@ -1,225 +1,149 @@
-"""HTML report generator using Jinja2."""
+"""HTML report generator using Jinja2.
+
+This module provides an HTML-formatted report that renders evaluation
+results as a styled web page with responsive tables and sections.
+"""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-from jinja2 import Template
+from typing import Any
 
 from openagent_eval.reports.base import ReportGenerator
 
-if TYPE_CHECKING:
-    from openagent_eval.core.engine import EvaluationReport
 
-# ------------------------------------------------------------------ #
-# Default Jinja2 template                                              #
-# ------------------------------------------------------------------ #
+class HTMLReport(ReportGenerator):
+    """Generate HTML-formatted evaluation reports.
 
-_HTML_TEMPLATE = Template(
-    """\
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OpenAgent Eval – Evaluation Report</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                   "Helvetica Neue", Arial, sans-serif;
-      background: #f5f7fa;
-      color: #1a1a1a;
-      line-height: 1.6;
-      padding: 2rem;
-    }
-    .container { max-width: 960px; margin: 0 auto; }
-    h1 { font-size: 1.8rem; margin-bottom: .25rem; }
-    .timestamp { color: #6b7280; font-size: .85rem; margin-bottom: 1.5rem; }
-    .card {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.08);
-      padding: 1.5rem;
-      margin-bottom: 1.25rem;
-    }
-    .card h2 { font-size: 1.15rem; margin-bottom: .75rem; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: .5rem .75rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
-    th { background: #f9fafb; font-weight: 600; }
-    .badge {
-      display: inline-block;
-      padding: .15rem .5rem;
-      border-radius: 4px;
-      font-size: .82rem;
-      font-weight: 600;
-    }
-    .badge-green  { background: #dcfce7; color: #166534; }
-    .badge-red    { background: #fee2e2; color: #991b1b; }
-    .badge-yellow { background: #fef9c3; color: #854d0e; }
-    .badge-blue   { background: #dbeafe; color: #1e40af; }
-    .item-block { margin-bottom: 1rem; padding-bottom: 1rem;
-                  border-bottom: 1px dashed #e5e7eb; }
-    .item-block:last-child { border-bottom: none; }
-    .item-block h3 { font-size: 1rem; margin-bottom: .4rem; }
-    .dim { color: #6b7280; }
-    .footer { text-align: center; color: #9ca3af; font-size: .8rem; margin-top: 2rem; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>OpenAgent Eval – Evaluation Report</h1>
-    <p class="timestamp">Generated: {{ timestamp }}</p>
+    Produces a styled HTML page with:
+    - Responsive header with title and timestamp
+    - Summary statistics grid
+    - Color-coded metrics table
+    - Error analysis section
+    - Sample result cards
+    - Configuration details
+    """
 
-    <!-- Summary -->
-    <div class="card">
-      <h2>Summary</h2>
-      <table>
-        <tr><th>Item</th><th>Value</th></tr>
-        <tr><td>Total Items</td><td>{{ total }}</td></tr>
-        <tr><td>Successful</td><td><span class="badge badge-green">{{ total - errors }}</span></td></tr>
-        <tr><td>Failed</td><td><span class="badge badge-red">{{ errors }}</span></td></tr>
-        <tr><td>Success Rate</td><td><span class="badge badge-blue">{{ "%.1f"|format(success_rate) }}%</span></td></tr>
-      </table>
-      <p class="dim" style="margin-top:.75rem;">
-        LLM: <strong>{{ llm_provider }}</strong> / <strong>{{ model }}</strong>
-        &mdash; Dataset: <strong>{{ dataset_path }}</strong>
-      </p>
-    </div>
+    def __init__(self, template_path: Path | str | None = None) -> None:
+        """Initialize the HTML report generator.
 
-    <!-- Metrics -->
-    {% if metrics %}
-    <div class="card">
-      <h2>Metrics</h2>
-      <table>
-        <tr><th>Metric</th><th style="text-align:right;">Average</th></tr>
-        {% for name, value in metrics.items() %}
-        <tr>
-          <td>{{ name }}</td>
-          <td style="text-align:right;">
-            <span class="badge badge-yellow">{{ "%.4f"|format(value) }}</span>
-          </td>
-        </tr>
-        {% endfor %}
-      </table>
-    </div>
-    {% endif %}
+        Args:
+            template_path: Optional path to a Jinja2 template file.
+                Uses built-in template if not provided.
+        """
+        self._template_path = template_path
+        self._template_str: str | None = None
 
-    <!-- Results -->
-    {% if results %}
-    <div class="card">
-      <h2>Results</h2>
-      {% for item in results %}
-      <div class="item-block">
-        <h3>Item {{ loop.index }}</h3>
-        <p><strong>Question:</strong> {{ item.question }}</p>
-        <p><strong>Answer:</strong> {{ item.answer or "_(empty)_" }}</p>
-        {% if item.ground_truth %}
-        <p><strong>Ground Truth:</strong> {{ item.ground_truth }}</p>
-        {% endif %}
-        {% if item.metrics %}
-        <table style="margin-top:.4rem;">
-          <tr><th>Metric</th><th style="text-align:right;">Score</th></tr>
-          {% for mname, mval in item.metrics.items() %}
-          <tr>
-            <td>{{ mname }}</td>
-            <td style="text-align:right;">{{ "%.4f"|format(mval) }}</td>
-          </tr>
-          {% endfor %}
-        </table>
-        {% endif %}
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
+    def _load_template(self) -> str:
+        """Load the Jinja2 template string.
 
-    <!-- Failures -->
-    {% if failures %}
-    <div class="card">
-      <h2>Failures</h2>
-      <p class="dim">{{ failures|length }} error(s) encountered.</p>
-      <ol style="margin-top:.5rem; padding-left:1.25rem;">
-        {% for err in failures %}
-        <li><strong>{{ err.type }}</strong>: {{ err.error }}</li>
-        {% endfor %}
-      </ol>
-    </div>
-    {% endif %}
+        Returns:
+            Template string content.
+        """
+        if self._template_str is not None:
+            return self._template_str
 
-    <p class="footer">OpenAgent Eval v{{ version }}</p>
-  </div>
-</body>
-</html>
-""",
-    autoescape=True,
-)
+        if self._template_path is not None:
+            path = Path(self._template_path)
+            if path.exists():
+                self._template_str = path.read_text(encoding="utf-8")
+                return self._template_str
 
+        # Load built-in template
+        builtin_path = Path(__file__).parent / "templates" / "report.html"
+        if builtin_path.exists():
+            self._template_str = builtin_path.read_text(encoding="utf-8")
+            return self._template_str
 
-class HTMLReportGenerator(ReportGenerator):
-    """Generate a styled HTML report via Jinja2."""
+        raise FileNotFoundError(
+            f"HTML template not found at {builtin_path}. "
+            "Install jinja2 and ensure the template file exists."
+        )
 
-    name = "html"
-    description = "Styled HTML report"
+    def _render_template(self, context: dict[str, Any]) -> str:
+        """Render a Jinja2 template string with context.
 
-    # ------------------------------------------------------------------ #
-    # Public API                                                          #
-    # ------------------------------------------------------------------ #
+        Args:
+            context: Template context variables.
 
-    def generate(self, report: EvaluationReport) -> str:
-        """Render the report as an HTML string."""
-        ctx = self._build_context(report)
-        return _HTML_TEMPLATE.render(**ctx)
+        Returns:
+            Rendered HTML string.
 
-    def save(self, report: EvaluationReport, output_path: Path) -> Path:
-        """Generate and save the HTML report."""
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(self.generate(report), encoding="utf-8")
-        return output_path
+        Raises:
+            ImportError: If jinja2 is not installed.
+        """
+        from jinja2 import Template
 
-    # ------------------------------------------------------------------ #
-    # Template context builder                                            #
-    # ------------------------------------------------------------------ #
+        template_str = self._load_template()
+        template = Template(template_str)
+        return template.render(**context)
 
-    @staticmethod
-    def _build_context(report: EvaluationReport) -> dict:
-        """Build the Jinja2 template context from the evaluation report."""
+    def generate(self, report: Any) -> str:
+        """Generate an HTML report string.
+
+        Args:
+            report: EvaluationReport containing config, results, and summary.
+
+        Returns:
+            HTML-formatted report string.
+        """
+        result = report.result
         summary = report.summary
-        total = summary.get("total_items", len(report.result.results))
-        errors = summary.get("failed_evaluations", len(report.result.errors))
-        success_rate = ((total - errors) / total * 100) if total > 0 else 0.0
+        config = report.config
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
+        # Compute overall score
         metrics = summary.get("metrics_summary", {})
-        if not metrics:
-            metrics = report.result.summary.get("metrics", {})
+        overall_score = (
+            sum(metrics.values()) / len(metrics) if metrics else None
+        )
 
-        results = []
-        for item in report.result.results:
-            results.append(
-                {
-                    "question": item.question,
-                    "answer": item.answer,
-                    "ground_truth": item.ground_truth,
-                    "metrics": item.metrics,
-                }
-            )
+        # Format results for template
+        results_data = []
+        for eval_result in result.results:
+            results_data.append({
+                "question": eval_result.question,
+                "answer": eval_result.answer,
+                "metrics": eval_result.metrics,
+            })
 
-        failures = [
-            {"type": e.get("type", "Unknown"), "error": e.get("error", "No message")}
-            for e in report.result.errors
-        ]
+        # Count errors by type
+        error_types: dict[str, int] = {}
+        for err in result.errors:
+            err_type = err.get("error_type", "Unknown")
+            error_types[err_type] = error_types.get(err_type, 0) + 1
 
-        return {
-            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
-            "total": total,
-            "errors": errors,
-            "success_rate": success_rate,
-            "llm_provider": report.config.llm.provider,
-            "model": report.config.llm.model,
-            "dataset_path": report.config.dataset.path,
+        context = {
+            "title": report.metadata.get("title", "OpenAgent Eval Report"),
+            "timestamp": now,
+            "total_items": summary.get("total_items", 0),
+            "successful": summary.get("successful_evaluations", 0),
+            "failed": summary.get("failed_evaluations", 0),
+            "overall_score": overall_score,
             "metrics": metrics,
-            "results": results,
-            "failures": failures,
-            "version": report.metadata.get("version", "unknown"),
+            "errors": error_types,
+            "results": results_data,
+            "config": config,
+            "version": report.metadata.get("version", "0.1.0"),
         }
+
+        return self._render_template(context)
+
+    def generate_to_file(self, report: Any, output_path: Path | str) -> Path:
+        """Generate HTML report and write to file.
+
+        Args:
+            report: EvaluationReport containing config, results, and summary.
+            output_path: Path to write the report file.
+
+        Returns:
+            Path to the written file.
+        """
+        path = Path(output_path)
+        if not str(path).endswith(".html"):
+            path = path / "report.html"
+        path = self._ensure_output_dir(path)
+        content = self.generate(report)
+        path.write_text(content, encoding="utf-8")
+        return path

@@ -1,10 +1,7 @@
 """JSON dataset loader.
 
-Loads datasets from .json files. Supports two formats:
-1. A JSON array of objects: [{"question": "..."}, ...]
-2. A JSON object with an "items" key: {"items": [{"question": "..."}, ...]}
-
-Each item must have at least a "question" field.
+This module implements the dataset loader for JSON format files.
+The expected format is a JSON array of dataset entries.
 """
 
 from __future__ import annotations
@@ -13,46 +10,52 @@ import json
 from pathlib import Path
 from typing import Any
 
-from openagent_eval.datasets.base import DatasetLoader
-from openagent_eval.exceptions.dataset import (
-    DatasetNotFoundError,
-    DatasetValidationError,
-    InvalidDatasetError,
-)
+from openagent_eval.datasets.base import BaseDatasetLoader, Dataset, DatasetItem
+from openagent_eval.datasets.models import DatasetItemModel, DatasetModel
+from openagent_eval.exceptions import DatasetValidationError, InvalidDatasetError
 
 
-class JsonDatasetLoader(DatasetLoader):
-    """Loader for JSON-formatted datasets.
+class JSONDatasetLoader(BaseDatasetLoader):
+    """Loader for JSON format datasets.
 
-    Supports both array format and object-with-items format.
+    Expects a JSON file containing an array of dataset entries:
+
+    ```json
+    [
+        {
+            "question": "What is Python?",
+            "ground_truth": "Python is a programming language.",
+            "context": "Python is a high-level programming language.",
+            "metadata": {"id": 1}
+        }
+    ]
+    ```
+
+    Example:
+        ```python
+        from openagent_eval.datasets import JSONDatasetLoader
+        from pathlib import Path
+
+        loader = JSONDatasetLoader()
+        dataset = loader.load(Path("data/questions.json"))
+        ```
     """
 
-    name = "json"
-    description = "Loads datasets from JSON files (.json)"
-
-    def load(
-        self,
-        path: Path,
-        limit: int | None = None,
-        shuffle: bool = False,
-    ) -> list[dict[str, Any]]:
-        """Load dataset from a JSON file.
+    def load(self, path: Path) -> Dataset:
+        """Load a dataset from a JSON file.
 
         Args:
             path: Path to the JSON file.
-            limit: Maximum items to load. None means load all.
-            shuffle: Whether to shuffle before limiting.
 
         Returns:
-            List of dataset items as dictionaries.
+            Loaded Dataset object.
 
         Raises:
             DatasetNotFoundError: If the file does not exist.
-            InvalidDatasetError: If the JSON is malformed or has unexpected structure.
-            DatasetValidationError: If items fail validation.
+            InvalidDatasetError: If the JSON is malformed.
+            DatasetValidationError: If the data fails validation.
         """
-        if not path.exists():
-            raise DatasetNotFoundError(dataset_path=str(path))
+        self._validate_path(path)
 
         try:
             raw_data = json.loads(path.read_text(encoding="utf-8"))
@@ -61,86 +64,93 @@ class JsonDatasetLoader(DatasetLoader):
                 message=f"Invalid JSON in file: {e}",
                 dataset_path=str(path),
                 format="json",
+                line_number=e.lineno,
             ) from e
 
-        items = self._extract_items(raw_data, path)
-        self.validate(items)
+        return self._parse_data(raw_data, path)
 
-        if shuffle:
-            import random
-
-            random.shuffle(items)
-
-        if limit is not None:
-            items = items[:limit]
-
-        return items
-
-    def validate(self, data: list[dict[str, Any]]) -> bool:
-        """Validate that all items have at least a 'question' field.
+    def validate(self, data: Any) -> bool:
+        """Validate that the data conforms to the expected JSON schema.
 
         Args:
-            data: List of dataset items to validate.
+            data: The data to validate (should be a list of dicts).
 
         Returns:
-            True if all items are valid.
+            True if valid.
 
         Raises:
-            DatasetValidationError: If any item is missing 'question'.
+            DatasetValidationError: If validation fails.
         """
+        if not isinstance(data, list):
+            raise DatasetValidationError(
+                message="Dataset must be a JSON array",
+                validation_errors=["Expected array, got " + type(data).__name__],
+            )
+
         errors: list[str] = []
         for i, item in enumerate(data):
             if not isinstance(item, dict):
-                errors.append(f"Item {i}: expected dict, got {type(item).__name__}")
+                errors.append(f"Item {i}: Expected dict, got {type(item).__name__}")
                 continue
+
             if "question" not in item:
-                errors.append(f"Item {i}: missing required field 'question'")
-            elif not isinstance(item["question"], str):
-                errors.append(f"Item {i}: 'question' must be a string")
+                errors.append(f"Item {i}: Missing required field 'question'")
+            elif not isinstance(item["question"], str) or not item["question"].strip():
+                errors.append(f"Item {i}: 'question' must be a non-empty string")
 
         if errors:
             raise DatasetValidationError(
                 message=f"Dataset validation failed with {len(errors)} error(s)",
                 validation_errors=errors,
             )
+
         return True
 
-    def _extract_items(
-        self, raw_data: Any, path: Path
-    ) -> list[dict[str, Any]]:
-        """Extract items list from parsed JSON data.
+    def _parse_data(self, raw_data: Any, path: Path) -> Dataset:
+        """Parse raw JSON data into a Dataset object.
 
         Args:
-            raw_data: Parsed JSON data (list or dict).
-            path: File path for error reporting.
+            raw_data: The parsed JSON data.
+            path: Path to the source file (for error reporting).
 
         Returns:
-            List of item dictionaries.
+            Dataset object.
 
         Raises:
-            InvalidDatasetError: If structure is not recognized.
+            InvalidDatasetError: If the data structure is invalid.
+            DatasetValidationError: If validation fails.
         """
-        if isinstance(raw_data, list):
-            return raw_data
+        # Validate the raw data
+        self.validate(raw_data)
 
-        if isinstance(raw_data, dict):
-            if "items" in raw_data:
-                items = raw_data["items"]
-                if isinstance(items, list):
-                    return items
-                raise InvalidDatasetError(
-                    message="Field 'items' must be a list",
-                    dataset_path=str(path),
-                    format="json",
+        # Parse each item through Pydantic validation
+        items: list[DatasetItem] = []
+        validation_errors: list[str] = []
+
+        for i, raw_item in enumerate(raw_data):
+            try:
+                model = DatasetItemModel(**raw_item)
+                items.append(
+                    DatasetItem(
+                        question=model.question,
+                        ground_truth=model.ground_truth,
+                        context=model.context,
+                        metadata=model.metadata,
+                        contexts=model.contexts,
+                    )
                 )
-            raise InvalidDatasetError(
-                message="JSON object must contain an 'items' key or be a list",
+            except Exception as e:
+                validation_errors.append(f"Item {i}: {e}")
+
+        if validation_errors:
+            raise DatasetValidationError(
+                message=f"Failed to parse {len(validation_errors)} item(s)",
                 dataset_path=str(path),
-                format="json",
+                validation_errors=validation_errors,
             )
 
-        raise InvalidDatasetError(
-            message=f"Expected list or dict, got {type(raw_data).__name__}",
-            dataset_path=str(path),
-            format="json",
+        return Dataset(
+            items=items,
+            name=path.stem,
+            metadata={"source": str(path), "format": "json"},
         )

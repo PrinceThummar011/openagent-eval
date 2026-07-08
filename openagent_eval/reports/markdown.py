@@ -1,158 +1,185 @@
-"""Markdown report generator."""
+"""Markdown report generator.
+
+This module provides a Markdown-formatted report that renders evaluation
+results as a structured .md file with tables, headers, and sections.
+"""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Any
 
 from openagent_eval.reports.base import ReportGenerator
 
-if TYPE_CHECKING:
-    from openagent_eval.core.engine import EvaluationReport
 
+class MarkdownReport(ReportGenerator):
+    """Generate Markdown-formatted evaluation reports.
 
-class MarkdownReportGenerator(ReportGenerator):
-    """Generate a clean Markdown report with headers, tables, and lists."""
+    Produces a structured .md file with:
+    - Title and metadata
+    - Summary section with key statistics
+    - Metrics table
+    - Error analysis
+    - Example evaluations
+    - Configuration details
+    """
 
-    name = "markdown"
-    description = "Markdown report for documentation and sharing"
+    def generate(self, report: Any) -> str:
+        """Generate a Markdown report string.
 
-    # ------------------------------------------------------------------ #
-    # Public API                                                          #
-    # ------------------------------------------------------------------ #
+        Args:
+            report: EvaluationReport containing config, results, and summary.
 
-    def generate(self, report: EvaluationReport) -> str:
-        """Render the report as a Markdown string."""
+        Returns:
+            Markdown-formatted report string.
+        """
+        result = report.result
+        summary = report.summary
+        config = report.config
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
         sections: list[str] = []
 
-        sections.append(self._header(report))
-        sections.append(self._summary_section(report))
-        sections.append(self._metrics_section(report))
-        sections.append(self._results_section(report))
-        sections.append(self._failures_section(report))
-        sections.append(self._footer(report))
+        # Title
+        sections.append(f"# {report.metadata.get('title', 'OpenAgent Eval Report')}")
+        sections.append("")
+        sections.append(f"*Generated on {now}*")
+        sections.append("")
 
-        return "\n\n".join(s for s in sections if s) + "\n"
+        # Summary
+        sections.append("## Summary")
+        sections.append("")
+        sections.append("| Metric | Value |")
+        sections.append("|--------|-------|")
+        sections.append(f"| Total Items | {summary.get('total_items', 0)} |")
+        sections.append(
+            f"| Successful | {summary.get('successful_evaluations', 0)} |"
+        )
+        sections.append(f"| Failed | {summary.get('failed_evaluations', 0)} |")
+        sections.append("")
 
-    def save(self, report: EvaluationReport, output_path: Path) -> Path:
-        """Generate and save the Markdown report."""
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(self.generate(report), encoding="utf-8")
-        return output_path
+        # Metrics
+        metrics = summary.get("metrics_summary", {})
+        if metrics:
+            sections.append("## Metrics")
+            sections.append("")
+            sections.append("| Metric | Average Score |")
+            sections.append("|--------|---------------|")
+            for metric_name, avg_score in sorted(metrics.items()):
+                # Add visual indicator
+                if avg_score >= 0.8:
+                    indicator = "🟢"
+                elif avg_score >= 0.5:
+                    indicator = "🟡"
+                else:
+                    indicator = "🔴"
+                sections.append(
+                    f"| {metric_name} | {indicator} {avg_score:.4f} |"
+                )
+            sections.append("")
 
-    # ------------------------------------------------------------------ #
-    # Section builders                                                    #
-    # ------------------------------------------------------------------ #
+            # Overall score
+            if metrics:
+                overall = sum(metrics.values()) / len(metrics)
+                sections.append(f"**Overall Average Score: {overall:.4f}**")
+                sections.append("")
 
-    def _header(self, report: EvaluationReport) -> str:
-        """Return the report header."""
-        title = "# OpenAgent Eval – Evaluation Report"
-        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-        meta = f"Generated: {timestamp}"
-        return f"{title}\n\n{meta}"
+        # Error Analysis
+        if result.errors:
+            sections.append("## Error Analysis")
+            sections.append("")
+            sections.append("| Error Type | Count |")
+            sections.append("|------------|-------|")
+            error_types: dict[str, int] = {}
+            for err in result.errors:
+                err_type = err.get("error_type", "Unknown")
+                error_types[err_type] = error_types.get(err_type, 0) + 1
+            for err_type, count in sorted(error_types.items()):
+                sections.append(f"| {err_type} | {count} |")
+            sections.append("")
 
-    def _summary_section(self, report: EvaluationReport) -> str:
-        """Return the summary section."""
-        summary = report.summary
-        total = summary.get("total_items", len(report.result.results))
-        errors = summary.get("failed_evaluations", len(report.result.errors))
-        success_rate = ((total - errors) / total * 100) if total > 0 else 0.0
+            # Error details
+            sections.append("### Error Details")
+            sections.append("")
+            for i, err in enumerate(result.errors[:10], 1):
+                sections.append(f"{i}. **{err.get('error_type', 'Unknown')}**: {err.get('error', 'No message')}")
+            sections.append("")
 
-        lines = [
-            "## Summary",
-            "",
-            f"| Item | Value |",
-            f"|------|-------|",
-            f"| Total Items | {total} |",
-            f"| Successful | {total - errors} |",
-            f"| Failed | {errors} |",
-            f"| Success Rate | {success_rate:.1f}% |",
-        ]
+        # Example Results
+        if result.results:
+            sections.append("## Sample Results")
+            sections.append("")
+            max_examples = min(len(result.results), 10)
+            for i, eval_result in enumerate(result.results[:max_examples], 1):
+                sections.append(f"### Result {i}")
+                sections.append("")
+                sections.append(f"**Question:** {eval_result.question}")
+                sections.append("")
+                if eval_result.answer:
+                    sections.append(f"**Answer:** {eval_result.answer}")
+                    sections.append("")
+                if eval_result.ground_truth:
+                    sections.append(f"**Ground Truth:** {eval_result.ground_truth}")
+                    sections.append("")
+                if eval_result.metrics:
+                    sections.append("**Scores:**")
+                    sections.append("")
+                    for metric_name, score in eval_result.metrics.items():
+                        sections.append(f"- {metric_name}: {score:.4f}")
+                    sections.append("")
+                if eval_result.contexts:
+                    sections.append("<details>")
+                    sections.append("<summary>Contexts</summary>")
+                    sections.append("")
+                    for ctx in eval_result.contexts:
+                        sections.append(f"> {ctx[:200]}{'...' if len(ctx) > 200 else ''}")
+                        sections.append("")
+                    sections.append("</details>")
+                    sections.append("")
 
-        # Config summary
-        cfg = report.config
-        lines += [
-            "",
-            f"- **LLM Provider:** `{cfg.llm.provider}`",
-            f"- **Model:** `{cfg.llm.model}`",
-            f"- **Dataset:** `{cfg.dataset.path}`",
-        ]
+        # Configuration
+        sections.append("## Configuration")
+        sections.append("")
+        sections.append("```yaml")
+        sections.append(f"dataset:")
+        sections.append(f"  path: {config.dataset.path}")
+        if config.dataset.format:
+            sections.append(f"  format: {config.dataset.format}")
+        sections.append(f"llm:")
+        sections.append(f"  provider: {config.llm.provider}")
+        sections.append(f"  model: {config.llm.model}")
+        sections.append(f"retriever:")
+        sections.append(f"  provider: {config.retriever.provider}")
+        sections.append(f"report:")
+        sections.append(f"  output: {config.report.output.value}")
+        sections.append(f"  output_dir: {config.report.output_dir}")
+        sections.append("```")
+        sections.append("")
 
-        return "\n".join(lines)
+        # Footer
+        sections.append("---")
+        sections.append("")
+        sections.append(
+            f"*Report generated by [OpenAgent Eval](https://github.com/OpenAgentHQ/openagent-eval) v{report.metadata.get('version', '0.1.0')}*"
+        )
 
-    def _metrics_section(self, report: EvaluationReport) -> str:
-        """Return the metrics section."""
-        metrics = report.summary.get("metrics_summary", {})
-        if not metrics:
-            metrics = report.result.summary.get("metrics", {})
-        if not metrics:
-            return "## Metrics\n\n_No metrics available._"
+        return "\n".join(sections)
 
-        lines = [
-            "## Metrics",
-            "",
-            "| Metric | Average |",
-            "|--------|---------|",
-        ]
-        for name, value in metrics.items():
-            lines.append(f"| {name} | {value:.4f} |")
+    def generate_to_file(self, report: Any, output_path: Path | str) -> Path:
+        """Generate Markdown report and write to file.
 
-        return "\n".join(lines)
+        Args:
+            report: EvaluationReport containing config, results, and summary.
+            output_path: Path to write the report file.
 
-    def _results_section(self, report: EvaluationReport) -> str:
-        """Return the detailed results section."""
-        results = report.result.results
-        if not results:
-            return "## Results\n\n_No results available._"
-
-        lines = [
-            "## Results",
-        ]
-
-        for idx, item in enumerate(results, 1):
-            lines.append(f"\n### Item {idx}")
-            lines.append("")
-            lines.append(f"**Question:** {item.question}")
-            lines.append("")
-            lines.append(f"**Answer:** {item.answer or '_(empty)_'}")
-            lines.append("")
-
-            if item.ground_truth:
-                lines.append(f"**Ground Truth:** {item.ground_truth}")
-                lines.append("")
-
-            if item.metrics:
-                lines.append("| Metric | Score |")
-                lines.append("|--------|-------|")
-                for name, score in item.metrics.items():
-                    lines.append(f"| {name} | {score:.4f} |")
-                lines.append("")
-
-        return "\n".join(lines)
-
-    def _failures_section(self, report: EvaluationReport) -> str:
-        """Return the failure analysis section."""
-        errors = report.result.errors
-        if not errors:
-            return ""
-
-        lines = [
-            "## Failures",
-            "",
-            f"_ {len(errors)} error(s) encountered during evaluation._",
-            "",
-        ]
-
-        for idx, err in enumerate(errors, 1):
-            error_type = err.get("type", "Unknown")
-            error_msg = err.get("error", "No message")
-            lines.append(f"{idx}. **{error_type}**: {error_msg}")
-
-        return "\n".join(lines)
-
-    def _footer(self, report: EvaluationReport) -> str:
-        """Return the report footer."""
-        meta = report.metadata
-        version = meta.get("version", "unknown")
-        return f"---\n\n_OpenAgent Eval v{version}_"
+        Returns:
+            Path to the written file.
+        """
+        path = Path(output_path)
+        if not str(path).endswith(".md"):
+            path = path / "report.md"
+        path = self._ensure_output_dir(path)
+        content = self.generate(report)
+        path.write_text(content, encoding="utf-8")
+        return path

@@ -9,11 +9,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Phase** | Phase 7 Complete |
-| **Status** | CLI Commands Implemented |
+| **Phase** | Phase 6 In Progress |
+| **Status** | Plugin System Implemented |
 | **Last Updated** | 2026-07-08 |
-| **Next Action** | Ready for Phase 8 (Documentation) |
-| **Current Branch** | feature/phase-7-cli |
+| **Next Action** | Ready for Phase 7 (CLI Commands) |
+| **Current Branch** | feature/phase-6-plugins |
 | **Remote** | https://github.com/OpenAgentHQ/openagent-eval.git |
 
 ---
@@ -96,54 +96,52 @@ SDK (openagent_eval - Core Evaluation API)
 - [x] Linting and formatting (ruff)
 
 ### Milestone 2: Data Layer
-- [ ] BaseDatasetLoader interface
-- [ ] JSON loader
-- [ ] JSONL loader
-- [ ] CSV loader
-- [ ] HuggingFace loader
-- [ ] Dataset validation
+- [x] BaseDatasetLoader interface
+- [x] JSON loader
+- [x] JSONL loader
+- [x] CSV loader
+- [x] HuggingFace loader
+- [x] Dataset validation
 
 ### Milestone 3: Metrics
-- [ ] BaseMetric interface
-- [ ] MetricResult model
-- [ ] Retrieval metrics
-- [ ] Generation metrics
-- [ ] Classic metrics (BLEU, ROUGE, etc.)
+- [x] BaseMetric interface
+- [x] MetricResult model
+- [x] Retrieval metrics
+- [x] Generation metrics
+- [x] Classic metrics (BLEU, ROUGE, etc.)
 
 ### Milestone 4: Reports
-- [ ] ReportGenerator interface
-- [ ] Terminal report (Rich)
-- [ ] Markdown report
-- [ ] HTML report (Jinja2)
-- [ ] JSON report
+- [x] ReportGenerator interface
+- [x] Terminal report (Rich)
+- [x] Markdown report
+- [x] HTML report (Jinja2)
+- [x] JSON report
 
 ### Milestone 5: Providers
-- [ ] LLMProvider interface
-- [ ] Retriever interface
-- [ ] OpenAI adapter
-- [ ] Gemini adapter
-- [ ] Anthropic adapter
-- [ ] Chroma adapter
+- [x] LLMProvider interface
+- [x] Retriever interface
+- [x] OpenAI adapter
+- [x] Gemini adapter
+- [x] Anthropic adapter
+- [x] Groq adapter
+- [x] OpenRouter adapter
+- [x] Ollama adapter (token tracking only)
+- [x] Chroma adapter
+- [x] Unit tests (138 tests)
 
 ### Milestone 6: Plugin System
-- [ ] Plugin registry
-- [ ] Entry point discovery
-- [ ] User extension examples
-
-### Milestone 7: CLI Commands
-- [x] `oaeval init` command
-- [x] `oaeval run` command with full pipeline
-- [x] `oaeval report` command
-- [x] `oaeval compare` command
-- [x] `oaeval list` command
-- [x] `oaeval doctor` command
-- [x] CLI integration tests (20 tests)
+- [x] Plugin registry extended with entry point discovery
+- [x] Entry point discovery mechanism implemented
+- [x] Plugin loading mechanism implemented
+- [x] Plugin development guide created
+- [x] Example custom metric plugin created
+- [x] Unit tests for plugin system written (27 tests)
 
 ---
 
 ## Current Questions
 
-None at this time. Phase 1 is complete.
+None at this time. Phase 5 is complete.
 
 ---
 
@@ -202,9 +200,8 @@ chore/{description}        # Maintenance tasks
 - Phase 4 is complete - Reports System implemented (78 tests)
 - Phase 5 is complete - Provider Layer implemented (138 tests)
 - Phase 6 is complete - Plugin System implemented (27 tests)
-- Phase 7 is complete - CLI Commands implemented (20 integration tests)
-- Total tests: 70 passing (50 existing + 20 new CLI integration tests)
-- Ready to proceed with Phase 8 (Documentation)
+- Total tests: 517+ passing
+- Ready to proceed with Phase 7 (CLI Commands)
 
 ---
 
@@ -230,7 +227,8 @@ chore/{description}        # Maintenance tasks
 | 2026-07-08 | Phase 3 completed - Metrics System implemented |
 | 2026-07-08 | Phase 4 completed - Reports System implemented |
 | 2026-07-08 | Phase 5 completed - Provider Layer implemented |
+| 2026-07-08 | 138 new provider tests added (490+ total) |
+| 2026-07-08 | PR #7 created for Phase 5 |
 | 2026-07-08 | Phase 6 completed - Plugin System implemented |
-| 2026-07-08 | Phase 7 completed - CLI Commands implemented |
-| 2026-07-08 | 20 new CLI integration tests added (70 total) |
-| 2026-07-08 | Created feature/phase-7-cli branch |
+| 2026-07-08 | 27 new plugin tests added (517+ total) |
+| 2026-07-08 | Created plugin development guide |
