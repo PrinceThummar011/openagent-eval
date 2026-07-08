@@ -163,9 +163,7 @@ class TestSemanticSimilarity:
             answer="The car is red",
             ground_truth="The automobile is red",
         )
-        # With sentence-transformers: cosine ~0.85+
-        # With word overlap fallback: Jaccard = 3/5 = 0.6
-        assert result.score >= 0.5
+        assert result.score > 0.7
 
     def test_different_meaning(self):
         """Different meaning returns lower score."""
