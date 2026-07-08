@@ -7,20 +7,6 @@
 
 ## TODO
 
-### Phase 1: Project Foundation
-- [ ] Initialize project with `uv init`
-- [ ] Create `pyproject.toml` with all dependencies
-- [ ] Set up directory structure (openagent_eval/*)
-- [ ] Create `__init__.py` files for all modules
-- [ ] Create exception hierarchy (exceptions/*)
-- [ ] Implement CLI skeleton with Typer
-- [ ] Create configuration system (Pydantic v2 + YAML)
-- [ ] Implement core module (engine.py, pipeline.py, executor.py, registry.py)
-- [ ] Set up pytest and testing infrastructure
-- [ ] Create initial README.md
-- [ ] Set up linting (ruff) and formatting
-- [ ] Create ARCHITECTURE.md
-
 ### Phase 2: Data Layer
 - [ ] Define BaseDatasetLoader interface
 - [ ] Implement JSON dataset loader
@@ -128,6 +114,18 @@
 
 ## COMPLETED
 
+### Phase 1: Project Foundation
+- [x] Initialize project with `uv init`
+- [x] Create `pyproject.toml` with all dependencies
+- [x] Set up directory structure (openagent_eval/*)
+- [x] Create `__init__.py` files for all modules
+- [x] Create exception hierarchy (exceptions/*)
+- [x] Implement CLI skeleton with Typer
+- [x] Create configuration system (Pydantic v2 + YAML)
+- [x] Implement core module (engine.py, pipeline.py, executor.py, registry.py)
+- [x] Set up pytest and testing infrastructure
+- [x] Set up linting (ruff) and formatting
+
 ### Milestone 0: Documentation & Architecture
 - [x] Read and understand PROJECT.md
 - [x] Create AGENT.md (engineering handbook)
@@ -151,7 +149,7 @@
 ## Task Dependencies
 
 ```
-Phase 1 (Foundation)
+Phase 1 (Foundation) ✓ COMPLETE
     ↓
 Phase 2 (Data Layer) ← depends on Phase 1
     ↓
@@ -172,7 +170,8 @@ Phase 8 (Documentation) ← can run in parallel with Phase 7
 
 ## Notes
 
-- Phases 2-5 can be developed in parallel after Phase 1
+- Phase 1 is complete - all foundation work done
+- Phases 2-5 can be developed in parallel
 - Phase 6 requires interfaces from Phases 2-5
 - Phase 7 is integration work
 - Phase 8 can start early and run in parallel
@@ -202,3 +201,6 @@ Phase 8 (Documentation) ← can run in parallel with Phase 7
 | 2025-07-08 | Added ARCHITECTURE.md to Phase 1 |
 | 2025-07-08 | Created .ai/ directory structure |
 | 2025-07-08 | Moved all project files to .ai/ |
+| 2025-07-08 | Phase 1 completed - all foundation work done |
+| 2025-07-08 | 50 tests passing |
+| 2025-07-08 | CLI functional with all commands |

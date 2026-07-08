@@ -1,0 +1,20 @@
+[
+  {
+    "question": "What is Python?",
+    "ground_truth": "Python is a programming language.",
+    "context": "Python is a high-level programming language.",
+    "metadata": {"id": 1}
+  },
+  {
+    "question": "What is RAG?",
+    "ground_truth": "RAG stands for Retrieval-Augmented Generation.",
+    "context": "RAG combines retrieval and generation for better answers.",
+    "metadata": {"id": 2}
+  },
+  {
+    "question": "What is a vector database?",
+    "ground_truth": "A vector database stores embeddings for similarity search.",
+    "context": "Vector databases are designed to store and query high-dimensional vectors.",
+    "metadata": {"id": 3}
+  }
+]
