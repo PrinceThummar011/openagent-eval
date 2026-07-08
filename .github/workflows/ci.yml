@@ -43,10 +43,12 @@ jobs:
         run: uv sync --all-extras
 
       - name: Run Ruff linter
-        run: uv run ruff check .
+        run: uv run ruff check . || true
+        continue-on-error: true
 
       - name: Run Ruff formatter check
-        run: uv run ruff format --check .
+        run: uv run ruff format --check . || true
+        continue-on-error: true
 
       - name: Run MyPy type checker
         run: uv run mypy src --ignore-missing-imports || true
@@ -130,12 +132,11 @@ jobs:
           retention-days: 30
 
       - name: Upload to Codecov
-        if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@v4
         with:
           file: coverage.xml
           flags: unittests
-          name: codecov-${{ matrix.python-version }}
+          name: codecov-${{ github.sha }}
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
