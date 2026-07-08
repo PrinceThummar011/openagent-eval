@@ -10,9 +10,11 @@
 | Field | Value |
 |-------|-------|
 | **Phase** | Pre-implementation |
-| **Status** | Architecture Decisions Applied |
+| **Status** | Git Workflow Rules Applied |
 | **Last Updated** | 2025-07-08 |
 | **Next Action** | Awaiting approval to scaffold project |
+| **Current Branch** | main |
+| **Remote** | https://github.com/OpenAgentHQ/openagent-eval.git |
 
 ---
 
@@ -153,6 +155,34 @@ None currently.
 
 ---
 
+## Git Workflow Rules (MANDATORY)
+
+GitHub Flow must be followed throughout the project.
+
+### Rules
+
+- **NEVER** develop directly on the `main` branch
+- The `main` branch must always remain stable and production-ready
+- For every task:
+  1. Create a new Git branch before making any code changes
+  2. Perform all work on that branch
+  3. Push the branch to the remote repository when complete
+  4. Create a Pull Request targeting the `main` branch
+  5. **Do NOT merge** - the user will review and merge manually
+
+### Branch Naming Convention
+
+```
+feature/{description}      # New features
+fix/{description}          # Bug fixes
+docs/{description}         # Documentation updates
+refactor/{description}     # Code refactoring
+test/{description}         # Test additions/updates
+chore/{description}        # Maintenance tasks
+```
+
+---
+
 ## Notes
 
 - PROJECT.md is comprehensive and well-structured
@@ -178,3 +208,5 @@ None currently.
 | 2025-07-08 | Added ARCHITECTURE.md to key files |
 | 2025-07-08 | Created .ai/ directory structure |
 | 2025-07-08 | Moved all project files to .ai/ |
+| 2025-07-08 | Connected to GitHub repository |
+| 2025-07-08 | Applied Git workflow rules (GitHub Flow) |
