@@ -208,7 +208,7 @@ Stay connected:
 
 - :fontawesome-brands-github: [GitHub](https://github.com/OpenAgentHQ/openagent-eval)
 - :fontawesome-brands-x-twitter: [X / Twitter](https://x.com/openagentdev)
-- :fontawesome-brands-linkedin: [LinkedIn](https://www.linkedin.com/company/openagentdev)
+- :fontawesome-brands-linkedin: [LinkedIn](https://www.linkedin.com/company/openagenthq)
 - :octicons-issue-opened-16: [Issues](https://github.com/OpenAgentHQ/openagent-eval/issues)
 - :octicons-comment-discussion-16: [Discussions](https://github.com/OpenAgentHQ/openagent-eval/discussions)
 
