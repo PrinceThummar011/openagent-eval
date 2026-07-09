@@ -6,7 +6,7 @@ results as a styled web page with responsive tables and sections.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -58,7 +58,8 @@ class HTMLReport(ReportGenerator):
 
         raise FileNotFoundError(
             f"HTML template not found at {builtin_path}. "
-            "Install jinja2 and ensure the template file exists."
+            "Ensure the package is installed correctly and includes "
+            "openagent_eval/reports/templates/report.html, or provide a valid custom template path."
         )
 
     def _render_template(self, context: dict[str, Any]) -> str:
@@ -92,12 +93,17 @@ class HTMLReport(ReportGenerator):
         result = report.result
         summary = report.summary
         config = report.config
-        now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        now = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
         # Compute overall score
         metrics = summary.get("metrics_summary", {})
+        numeric_metric_values = [
+            value for value in metrics.values()
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+        ]
         overall_score = (
-            sum(metrics.values()) / len(metrics) if metrics else None
+            sum(numeric_metric_values) / len(numeric_metric_values)
+            if numeric_metric_values else None
         )
 
         # Format results for template
@@ -142,8 +148,10 @@ class HTMLReport(ReportGenerator):
             Path to the written file.
         """
         path = Path(output_path)
-        if not str(path).endswith(".html"):
+        if path.suffix == "":
             path = path / "report.html"
+        elif path.suffix.lower() != ".html":
+            path = path.with_suffix(".html")
         path = self._ensure_output_dir(path)
         content = self.generate(report)
         path.write_text(content, encoding="utf-8")
