@@ -13,7 +13,6 @@ from typing import Any
 import numpy as np
 
 from openagent_eval.exceptions.provider import (
-    ProviderConnectionError,
     ProviderExecutionError,
 )
 from openagent_eval.providers.base.retriever import Retriever
