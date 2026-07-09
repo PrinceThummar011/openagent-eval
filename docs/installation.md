@@ -33,6 +33,13 @@ You can also use [uv](https://github.com/astral-sh/uv):
 uv pip install openagent-eval
 ```
 
+Some retrievers and embedders require extra dependencies (e.g. `chromadb`, `sentence-transformers`,
+`faiss-cpu`, `qdrant-client`). Install the full set with:
+
+```bash
+pip install "openagent-eval[all]"
+```
+
 ## Install with uvx (no persistent environment)
 
 ```bash

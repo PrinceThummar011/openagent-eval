@@ -13,7 +13,7 @@ hide:
 # OpenAgent Eval
 ## The `pytest` of AI evaluation
 
-**Open-source CLI framework for evaluating RAG systems and AI Agents — local-first, developer-friendly, and framework agnostic.**
+**Open-source, local-first framework for evaluating RAG systems and AI Agents — a clean CLI, a typed Python SDK, and a pluggable metric/provider architecture.**
 
 [Getting Started :octicons-arrow-right-24:](installation.md){ .md-button .md-button--primary }
 [View on GitHub :octicons-mark-github-16:](https://github.com/OpenAgentHQ/openagent-eval){ .md-button }
@@ -33,22 +33,22 @@ pip install openagent-eval
 <div class="grid cards" markdown>
 
 - :material-rocket-launch: **Local-First**
-  Runs entirely on your machine. No cloud services, dashboards, or authentication required — your data never leaves your laptop.
+  Runs entirely on your machine. No dashboards or accounts required — your data never leaves your laptop.
 
 - :material-console-line: **CLI + SDK**
-  Drive evaluations from the command line with `oaeval`, or import `openagent_eval` directly into your Python test suite.
+  Drive evaluations from the command line with `oaeval`, or embed `Engine` directly in your Python test suite.
 
 - :material-puzzle: **Framework Agnostic**
   Works with any RAG implementation — LangChain, LlamaIndex, or fully custom pipelines.
 
-- :material-puzzle-plus: **Plugin-Based**
-  Extend the framework with custom metrics, providers, and report generators through a clean plugin API.
+- :material-puzzle-plus: **Pluggable**
+  Swap LLMs, retrievers, embedders, and metrics through a clean provider/plugin architecture.
 
 - :material-chart-box: **Comprehensive Metrics**
-  Retrieval, generation, performance, and cost evaluation in a single, consistent interface.
+  Retrieval, generation, performance, and cost metrics in one consistent interface.
 
 - :material-file-document-multiple: **Beautiful Reports**
-  Terminal, Markdown, HTML, and JSON output formats with built-in failure analysis.
+  Terminal, Markdown, HTML, and JSON reports with built-in failure analysis.
 
 </div>
 
@@ -60,7 +60,7 @@ pip install openagent-eval
 # Install
 pip install openagent-eval
 
-# Initialize a configuration file
+# Create a configuration file
 oaeval init
 
 # Run your first evaluation
@@ -77,9 +77,9 @@ See the [Quickstart](quickstart.md) for a full walkthrough, or jump straight to 
 
 ## Architecture Overview
 
-OpenAgent Eval is built as a modular pipeline. A configuration file describes your dataset, retriever,
-LLM, and the metrics you want to compute. The engine loads the dataset, runs retrieval and generation,
-then scores the results with the selected metrics and produces a report.
+OpenAgent Eval is a modular, provider-agnostic pipeline. A `Config` describes your dataset, retriever,
+LLM, and the metrics to compute. The `Engine` loads the dataset, runs retrieval and generation, scores
+the results with the selected metrics, and persists a report.
 
 ```mermaid
 flowchart LR
@@ -91,7 +91,7 @@ flowchart LR
     E --> G[Answer]
     F --> H[Metrics]
     G --> H
-    H --> I[Report<br/>Terminal / MD / HTML / JSON]
+    H --> I[ReportManager<br/>Terminal / MD / HTML / JSON]
 ```
 
 Every stage is pluggable. Read more on the [Architecture](architecture.md) page.
@@ -100,19 +100,21 @@ Every stage is pluggable. Read more on the [Architecture](architecture.md) page.
 
 ## Evaluation Metrics
 
+Metric names map to the built-in registry (`openagent_eval.metrics.METRIC_REGISTRY`):
+
 <div class="grid cards" markdown>
 
 - :material-magnify: **Retrieval**
-  Context Precision, Context Recall, Recall@K, Precision@K, Hit Rate, MRR, NDCG.
+  `context_precision`, `context_recall`, `recall_at_k`, `precision_at_k`, `hit_rate`, `mrr`, `ndcg`
 
 - :material-message-text: **Generation**
-  Faithfulness, Answer Relevancy, Hallucination, Semantic Similarity, Exact Match / F1, BLEU / ROUGE, BERTScore.
+  `faithfulness`, `answer_relevancy`, `hallucination`, `semantic_similarity`, `exact_match`, `f1_score`, `bleu`, `rouge`, `bertscore`
 
 - :material-timer: **Performance**
-  Embedding, retrieval, and LLM latency plus total end-to-end latency.
+  `latency`
 
 - :material-currency-usd: **Cost**
-  Token counting (prompt, completion, total) and per-provider cost estimation.
+  `token_count`
 
 </div>
 
@@ -120,9 +122,9 @@ Every stage is pluggable. Read more on the [Architecture](architecture.md) page.
 
 ## Supported Providers
 
-| LLM Providers | Retriever Providers |
-| --- | --- |
-| OpenAI, Google Gemini, Anthropic, Groq, OpenRouter, Ollama (local) | Chroma (more coming soon) |
+| LLM Providers | Retriever Providers | Embedders |
+| --- | --- | --- |
+| OpenAI, Google Gemini, Anthropic, Groq, OpenRouter, Ollama, Mock | Chroma, Memory, BM25, FAISS, Qdrant, Pinecone, Weaviate, Elasticsearch, PGVector, HTTP, Mock | Sentence-Transformers, Mock |
 
 Bring your own by implementing the provider base classes — see [API Reference](api.md).
 
@@ -131,12 +133,19 @@ Bring your own by implementing the provider base classes — see [API Reference]
 ## Python SDK
 
 ```python
-from openagent_eval import Evaluator
+import asyncio
 
-evaluator = Evaluator(config_path="config.yaml")
-result = evaluator.evaluate(dataset)
+from openagent_eval.config.models import Config
+from openagent_eval.core.engine import Engine
 
-print(result.summary)
+config = Config(
+    dataset={"path": "data/questions.json"},
+    llm={"provider": "openai", "model": "gpt-4o-mini"},
+    retriever={"provider": "chroma", "settings": {"collection_name": "my_collection"}},
+)
+engine = Engine(config)
+report = asyncio.run(engine.run(dataset))
+print(report.summary)
 ```
 
 The SDK is fully documented in the [API Reference](api.md) and demonstrated in
@@ -150,7 +159,7 @@ The SDK is fully documented in the [API Reference](api.md) and demonstrated in
 | --- | --- |
 | `oaeval init` | Create a configuration file |
 | `oaeval run <config>` | Run an evaluation pipeline |
-| `oaeval report <id>` | View evaluation reports |
+| `oaeval report <id>` | View a stored report (`latest` for the most recent) |
 | `oaeval compare <a> <b>` | Compare two experiments |
 | `oaeval list` | List previous evaluations |
 | `oaeval doctor` | Check environment and dependencies |
@@ -175,7 +184,7 @@ metrics and providers.
 Stay connected and help shape the roadmap:
 
 - :fontawesome-brands-github: [GitHub](https://github.com/OpenAgentHQ/openagent-eval)
-- :fontawesome-brands-x-twitter: [X / Twitter](https://x.com/openagentdev)
+- :fontawesome-brands-x-twitter: [X / Twitter](https://x.com/openagenthq)
 - :fontawesome-brands-discord: [Discord](https://discord.gg/openagenthq)
 - :octicons-issue-opened-16: [Issues](https://github.com/OpenAgentHQ/openagent-eval/issues)
 - :octicons-comment-discussion-16: [Discussions](https://github.com/OpenAgentHQ/openagent-eval/discussions)

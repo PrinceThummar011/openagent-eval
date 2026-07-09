@@ -3,29 +3,35 @@
 Frequently asked questions about OpenAgent Eval.
 
 ??? question "What is OpenAgent Eval?"
-    An open-source, local-first CLI framework for evaluating RAG systems and AI Agents. Our goal is to
+    An open-source, local-first framework for evaluating RAG systems and AI Agents. Our goal is to
     become the `pytest` of AI evaluation — a familiar, composable way to measure quality.
 
 ??? question "Do I need an API key?"
     Only if you use a hosted LLM provider (OpenAI, Gemini, Anthropic, Groq, OpenRouter). You can run
-    fully locally with [Ollama](https://ollama.com) — no API key required.
+    fully locally with [Ollama](https://ollama.com), or use the built-in `mock` providers for CI and
+    dry-runs — no API key required.
 
 ??? question "Which LLM providers are supported?"
-    OpenAI, Google Gemini, Anthropic, Groq, OpenRouter, and Ollama (local). See
+    OpenAI, Google Gemini, Anthropic, Groq, OpenRouter, Ollama, and a `mock` provider. See
     [Architecture](architecture.md#providers-openagent_evalproviders) for the base classes and how to
     add your own.
 
 ??? question "Which retrievers are supported?"
-    Chroma today, with more (FAISS, Weaviate, Pinecone) planned. Implement `BaseRetrieverProvider` to
-    add one.
+    Chroma, Memory, BM25, FAISS, Qdrant, Pinecone, Weaviate, Elasticsearch, PGVector, HTTP, and a
+    `mock` provider. Implement `Retriever` to add one.
+
+??? question "Which embedders are supported?"
+    Sentence-Transformers and a `mock` embedder. Local vector retrievers (Memory, FAISS, Qdrant,
+    Pinecone, PGVector) use an embedder; server-side backends (Chroma, Weaviate) embed remotely.
 
 ??? question "Can I use OpenAgent Eval inside pytest?"
-    Yes. Import `Evaluator` from `openagent_eval` and assert on `result.summary`. See
+    Yes. Construct an `Engine` and call its `async` `run()` method with `asyncio.run`. See
     [Examples](examples.md#sdk-evaluate-in-a-pytest-suite).
 
 ??? question "How do I add a custom metric?"
-    Subclass `openagent_eval.metrics.base.BaseMetric`, implement `score(...)`, and register it via the
-    plugin manager. A template lives at `openagent_eval/plugins/examples/custom_metric.py`.
+    Subclass `openagent_eval.metrics.base.BaseMetric`, implement `evaluate(**kwargs) -> MetricResult`,
+    and register it in `METRIC_REGISTRY`. A template lives at
+    `openagent_eval/plugins/examples/custom_metric.py`.
 
 ??? question "Which report formats are available?"
     Terminal, Markdown, HTML, and JSON, plus a side-by-side `comparison` report for

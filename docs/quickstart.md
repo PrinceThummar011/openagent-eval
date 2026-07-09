@@ -8,46 +8,65 @@ This guide takes you from a fresh install to your first evaluation report in a f
 oaeval init
 ```
 
-This creates a `config.yaml` file with sensible defaults:
+This writes a `config.yaml` with sensible defaults:
 
 ```yaml title="config.yaml"
-dataset: data/questions.json
+dataset:
+  path: data/questions.json
+  # limit: 100
+
+llm:
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0.0
 
 retriever:
   provider: chroma
   settings:
-    collection_name: my_docs
-
-llm:
-  provider: openai
-  model: gpt-4o
+    collection_name: my_collection
 
 metrics:
-  - faithfulness
-  - answer_relevancy
-  - hallucination
-  - latency
+  retrieval:
+    - context_precision
+    - context_recall
+    - mrr
+  generation:
+    - faithfulness
+    - answer_relevancy
+  performance:
+    - latency
+  cost:
+    - token_count
 
-output: terminal
-output_dir: ./reports
+report:
+  output: terminal
+  output_dir: ./reports
 ```
+
+!!! tip "Legacy shorthand still works"
+    The loader also accepts the flat, single-string form used in older examples:
+
+    ```yaml
+    dataset: data/questions.json
+    metrics: [faithfulness, answer_relevancy, latency, token_count]
+    ```
+
+    It is normalized to the canonical nested structure automatically.
 
 ## 2. Prepare a dataset
 
-OpenAgent Eval supports several dataset formats. The simplest is a JSON list of questions, each with
-a reference answer and the retrieved context:
+OpenAgent Eval loads datasets in **JSON**, **JSONL**, **CSV**, or **PDF** format. Each item needs a
+`question`; `ground_truth`, `context`, and `ground_truth_contexts` are optional.
 
 ```json title="data/questions.json"
 [
   {
     "question": "What is the capital of France?",
-    "reference": "The capital of France is Paris.",
-    "context": ["France is a country in Western Europe. Its capital is Paris."]
+    "ground_truth": "The capital of France is Paris.",
+    "context": "France is a country in Western Europe. Its capital is Paris."
   }
 ]
 ```
-
-See [Examples](examples.md) for CSV, JSONL, and Hugging Face dataset loaders.
 
 ## 3. Run the evaluation
 
@@ -55,7 +74,7 @@ See [Examples](examples.md) for CSV, JSONL, and Hugging Face dataset loaders.
 oaeval run config.yaml
 ```
 
-You can override the output format from the command line:
+Override the output format from the command line:
 
 ```bash
 oaeval run config.yaml --output html
@@ -79,31 +98,59 @@ oaeval compare exp-001 exp-002
 
 ## 5. Use the Python SDK
 
-The same pipeline is available as a library so you can embed it in `pytest`:
+The same pipeline is available as a library so you can embed it in `pytest`. The `Engine.run` method is
+`async`, so drive it with `asyncio.run`:
 
 ```python title="test_eval.py"
-from openagent_eval import Evaluator
+import asyncio
 
-evaluator = Evaluator(config_path="config.yaml")
-result = evaluator.evaluate(dataset)
+from openagent_eval.config.models import Config
+from openagent_eval.core.engine import Engine
 
-assert result.summary["faithfulness"] >= 0.8
+config = Config(
+    dataset={"path": "data/questions.json"},
+    llm={"provider": "openai", "model": "gpt-4o-mini"},
+    retriever={"provider": "chroma", "settings": {"collection_name": "my_collection"}},
+    metrics={"generation": ["faithfulness"], "retrieval": ["context_precision"]},
+)
+
+dataset = [
+    {
+        "question": "What is RAG?",
+        "ground_truth": "Retrieval-Augmented Generation.",
+        "context": "RAG combines retrieval with generation.",
+    }
+]
+
+engine = Engine(config)
+report = asyncio.run(engine.run(dataset))
+
+assert report.summary["metrics_summary"]["faithfulness"] >= 0.8
 ```
 
 ## Configuration reference
 
-| Key | Description | Default |
+| Key | Type | Description |
 | --- | --- | --- |
-| `dataset` | Path or loader spec for the evaluation dataset | — |
-| `retriever.provider` | Retriever backend (`chroma`, ...) | `chroma` |
-| `llm.provider` | LLM backend (`openai`, `gemini`, `anthropic`, `groq`, `openrouter`, `ollama`) | `openai` |
-| `llm.model` | Model identifier | — |
-| `metrics` | List of metric names to compute | — |
-| `output` | Report format: `terminal`, `markdown`, `html`, `json` | `terminal` |
-| `output_dir` | Directory for persisted reports | `./reports` |
+| `dataset.path` | `str` | Path to the dataset file |
+| `dataset.format` | `str` \| `null` | Explicit format: `json`, `jsonl`, `csv`, `pdf` (auto-detected from extension otherwise) |
+| `dataset.limit` | `int` \| `null` | Maximum number of items to load |
+| `dataset.shuffle` | `bool` | Shuffle items before loading |
+| `llm.provider` | `str` | `openai`, `gemini`, `anthropic`, `groq`, `openrouter`, `ollama`, `mock` |
+| `llm.model` | `str` | Model identifier (e.g. `gpt-4o-mini`) |
+| `llm.temperature` | `float` | Sampling temperature (default `0.0`) |
+| `retriever.provider` | `str` | Chroma, Memory, BM25, FAISS, Qdrant, Pinecone, Weaviate, Elasticsearch, PGVector, HTTP, Mock |
+| `retriever.settings` | `dict` | Provider-specific options (e.g. `collection_name`) |
+| `retriever.embedder` | `dict` \| `null` | Embedder config for local vector retrievers |
+| `metrics.retrieval` | `list[str]` | Retrieval metric names |
+| `metrics.generation` | `list[str]` | Generation metric names |
+| `metrics.performance` | `list[str]` | Performance metric names |
+| `metrics.cost` | `list[str]` | Cost metric names |
+| `report.output` | `str` | `terminal`, `markdown`, `html`, `json` |
+| `report.output_dir` | `str` | Directory for persisted reports |
 
 ## Next steps
 
 - Understand the internals on the [Architecture](architecture.md) page.
 - Learn every flag in the [CLI Reference](cli.md).
-- Discover advanced metrics and plugins in the [API Reference](api.md).
+- Discover the full API in [API Reference](api.md).
