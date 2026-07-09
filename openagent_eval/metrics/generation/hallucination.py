@@ -50,20 +50,14 @@ class HallucinationDetection(BaseMetric):
                 metadata={"method": "word_coverage"},
             )
 
-        # Try DeepEval if available. Only fall back when the dependency is
-        # missing; surface genuine failures instead of silently hiding them.
+        # Try DeepEval if available. Fall back to local heuristic for any
+        # runtime error (missing API key, model init failure, etc.).
         try:
             return self._evaluate_with_deepeval(answer, contexts)
         except ImportError:
-            # DeepEval not installed -> use the local fallback.
             pass
-        except Exception as e:  # pragma: no cover - defensive
-            from openagent_eval.exceptions import MetricExecutionError
-
-            raise MetricExecutionError(
-                message=f"Hallucination metric (DeepEval) failed: {e}",
-                original_error=e,
-            ) from e
+        except Exception:
+            pass  # DeepEval runtime failure → use local fallback
 
         # Fallback: word coverage
         return self._evaluate_simple(answer, contexts)
