@@ -111,6 +111,17 @@ class TestHTMLReport:
         assert result_path.exists()
         assert str(result_path).endswith(".html")
 
+    def test_generate_to_file_replaces_non_html_extension(
+        self, evaluation_report: Any, tmp_path: Path
+    ) -> None:
+        """generate_to_file() replaces non-.html suffixes with .html."""
+        report = HTMLReport()
+        output_path = tmp_path / "report.txt"
+        result_path = report.generate_to_file(evaluation_report, output_path)
+
+        assert result_path == tmp_path / "report.html"
+        assert result_path.exists()
+
     def test_generate_to_file_creates_directory(
         self, evaluation_report: Any, tmp_path: Path
     ) -> None:
@@ -142,3 +153,40 @@ class TestHTMLReport:
         result = report.generate(evaluation_report)
         assert "<style>" in result
         assert "var(--primary)" in result
+
+    def test_generate_ignores_non_numeric_metrics_for_overall_score(
+        self, evaluation_report: Any
+    ) -> None:
+        """generate() computes overall score from numeric metric values only."""
+        report = HTMLReport()
+        evaluation_report.summary["metrics_summary"] = {
+            "precision": 0.8,
+            "count": 2,
+            "ignored_bool": True,
+            "ignored_text": "0.9",
+            "ignored_dict": {"value": 1.0},
+        }
+        captured_context: dict[str, Any] = {}
+
+        def _capture_context(context: dict[str, Any]) -> str:
+            captured_context.update(context)
+            return "ok"
+
+        report._render_template = _capture_context
+        report.generate(evaluation_report)
+
+        assert captured_context["overall_score"] == pytest.approx(1.4)
+
+    def test_load_template_missing_builtin_has_installation_guidance(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """_load_template() raises a packaging-focused guidance message."""
+        report = HTMLReport()
+        monkeypatch.setattr(Path, "exists", lambda _: False)
+
+        with pytest.raises(FileNotFoundError) as exc_info:
+            report._load_template()
+
+        message = str(exc_info.value)
+        assert "openagent_eval/reports/templates/report.html" in message
+        assert "Install jinja2" not in message
