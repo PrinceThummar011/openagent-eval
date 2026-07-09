@@ -112,7 +112,7 @@
   font-size: clamp(2.1rem, 4.4vw, 3.3rem);
   line-height: 1.04;
   margin: 1rem 0 0.6rem;
-  background: linear-gradient(120deg, var(--oae-ink) 30%, var(--oae-brand) 100%);
+  background: linear-gradient(120deg, #ffffff 30%, var(--oae-brand-bright) 100%);
   -webkit-background-clip: text;
           background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -121,7 +121,8 @@
 .oae-lede {
   font-size: 1.08rem;
   line-height: 1.6;
-  color: var(--oae-ink-soft);
+  color: var(--md-default-fg-color);
+  opacity: 0.78;
   max-width: 34rem;
   margin: 0 0 1.4rem;
 }
@@ -140,13 +141,12 @@
   gap: 0.6rem;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.92rem;
-  color: var(--oae-ink);
-  background: #0f1430;
-  color: #e8ecff;
+  background: var(--md-code-background-color, #0f1430);
+  color: var(--md-code-color, #e8ecff);
   padding: 0.6rem 0.95rem;
   border-radius: 0.6rem;
-  border: 1px solid rgba(121, 134, 203, 0.4);
-  box-shadow: 0 10px 30px rgba(15, 20, 48, 0.25);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
 .oae-install::before {
@@ -164,9 +164,9 @@
   width: 100%;
   height: auto;
   border-radius: 1rem;
-  border: 1px solid var(--oae-line);
-  box-shadow: 0 24px 60px rgba(57, 73, 171, 0.18);
-  background: #fff;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  background: var(--md-default-fg-color--lightest);
 }
 
 /* ---------------------------------------------------------------------------
@@ -213,16 +213,19 @@
 
 /* ---------------------------------------------------------------------------
    Feature cards — accent top rule, refined elevation
+   Works in BOTH light and dark Material themes.
    --------------------------------------------------------------------------- */
 .md-typeset .oae-features.grid.cards > ul {
   gap: 1rem;
 }
 
 .md-typeset .oae-features.grid.cards > ul > li {
-  border: 1px solid var(--oae-line);
+  border: 1px solid var(--md-default-fg-color--lightest);
   border-top: 3px solid var(--oae-brand-300);
   border-radius: 0.7rem;
   padding: 1.1rem 1.2rem 1.2rem;
+  /* Use Material's surface so it reads correctly in light AND dark mode */
+  background: var(--md-default-fg-color--lightest);
   transition: transform 0.2s var(--oae-ease), box-shadow 0.2s var(--oae-ease),
     border-color 0.2s var(--oae-ease);
 }
@@ -233,13 +236,20 @@
   box-shadow: 0 14px 34px rgba(57, 73, 171, 0.16);
 }
 
+/* Card heading — must be readable in both themes */
 .md-typeset .oae-features.grid.cards > ul > li > p:first-child {
   font-weight: 600;
-  color: var(--oae-ink);
+  color: var(--md-default-fg-color);
+}
+
+/* Card body text */
+.md-typeset .oae-features.grid.cards > ul > li > p:last-child {
+  color: var(--md-default-fg-color);
+  opacity: 0.82;
 }
 
 /* ---------------------------------------------------------------------------
-   Provider / metric chips
+   Provider / metric chips — theme-aware
    --------------------------------------------------------------------------- */
 .oae-chips {
   display: flex;
@@ -255,9 +265,9 @@
   font-size: 0.8rem;
   padding: 0.3rem 0.65rem;
   border-radius: 0.5rem;
-  background: rgba(57, 73, 171, 0.06);
-  border: 1px solid var(--oae-line);
-  color: var(--oae-ink-soft);
+  background: var(--md-code-background-color, rgba(57, 73, 171, 0.06));
+  border: 1px solid var(--md-default-fg-color--lightest);
+  color: var(--md-default-fg-color);
 }
 
 /* ---------------------------------------------------------------------------
