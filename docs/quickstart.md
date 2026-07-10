@@ -43,6 +43,20 @@ report:
   output_dir: ./reports
 ```
 
+!!! tip "Use the interactive wizard"
+    For a guided setup, use the interactive wizard:
+
+    ```bash
+    oaeval init --interactive
+    ```
+
+    The wizard will prompt you to select:
+    - LLM provider (OpenAI, Anthropic, Gemini, Groq, OpenRouter)
+    - Model based on your provider
+    - Retriever (Chroma, Qdrant, Pinecone, Weaviate, FAISS, Memory)
+    - Metric preset (Quick, Standard, Comprehensive)
+    - Output format
+
 !!! tip "Legacy shorthand still works"
     The loader also accepts the flat, single-string form used in older examples:
 
@@ -53,7 +67,22 @@ report:
 
     It is normalized to the canonical nested structure automatically.
 
-## 2. Prepare a dataset
+## 2. Validate your configuration
+
+Before running an evaluation, validate your configuration:
+
+```bash
+oaeval validate config.yaml
+```
+
+This checks:
+- YAML syntax
+- Configuration schema
+- API key availability
+- Dataset file existence
+- Output directory accessibility
+
+## 3. Prepare a dataset
 
 OpenAgent Eval loads datasets in **JSON**, **JSONL**, **CSV**, or **PDF** format. Each item needs a
 `question`; `ground_truth`, `context`, and `ground_truth_contexts` are optional.
@@ -68,7 +97,7 @@ OpenAgent Eval loads datasets in **JSON**, **JSONL**, **CSV**, or **PDF** format
 ]
 ```
 
-## 3. Run the evaluation
+## 4. Run the evaluation
 
 ```bash
 oaeval run config.yaml
@@ -80,7 +109,23 @@ Override the output format from the command line:
 oaeval run config.yaml --output html
 ```
 
-## 4. View the report
+!!! tip "Use dry-run mode"
+    Preview the evaluation plan without running it:
+
+    ```bash
+    oaeval run config.yaml --dry-run
+    ```
+
+    This shows what would be evaluated without incurring API costs.
+
+!!! tip "Override metrics"
+    Run specific metrics instead of all configured ones:
+
+    ```bash
+    oaeval run config.yaml --metrics faithfulness,answer_relevancy,latency
+    ```
+
+## 5. View the report
 
 ```bash
 oaeval report latest
@@ -92,11 +137,18 @@ Other report commands:
 # List all stored evaluations
 oaeval list
 
+# List with sorting
+oaeval list --sort score --limit 5
+
 # Compare two experiments
 oaeval compare exp-001 exp-002
+
+# Delete old reports
+oaeval delete exp-001
+oaeval delete all --force
 ```
 
-## 5. Use the Python SDK
+## 6. Use the Python SDK
 
 The same pipeline is available as a library so you can embed it in `pytest`. The `Engine.run` method is
 `async`, so drive it with `asyncio.run`:

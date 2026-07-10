@@ -10,13 +10,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
+- **CLI Improvements**
+  - Global error handler with friendly Rich output for `OpenAgentEvalError` subclasses
+  - Global flags: `--quiet`, `--json`, `--no-color`, `--verbose`
+  - Config auto-discovery (config.yaml/oaeval.yaml in cwd, OAEVAL_CONFIG env var)
+  - New `validate` command to check config without running evaluation
+  - Dry-run mode (`--dry-run` flag on run command)
+  - Shell completion support for bash, zsh, and fish
+  - Enhanced `doctor` command with API connectivity tests
+  - New `delete` command for removing old reports
+  - Enhanced `list` command with sorting (date/score/cost) and search filtering
+  - Enhanced `init` command with interactive wizard for provider/model selection
+  - JSON output support for all commands (`--json` flag)
+
 - Phase 8: Documentation
   - Vision documentation
   - Problem statement
   - Product requirements
   - Architecture documentation
   - Project structure
-  - CLI specification
+  - CLI specification (updated with new commands and features)
   - Metric system documentation
   - Plugin system documentation
   - Coding guidelines
@@ -37,10 +50,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 
 - Improved README.md with badges and comprehensive documentation
+- Updated CLI documentation with new commands and features
+- Enhanced `init` command with interactive wizard
+- Enhanced `run` command with dry-run mode and metrics override
+- Enhanced `doctor` command with API connectivity tests
+- Enhanced `list` command with sorting and filtering
+- Improved error handling across all CLI commands
 
 ### Fixed
 
-- (No fixes yet)
+- Fixed error chaining in CLI commands (raise from)
+- Fixed unused imports and variables
 
 ---
 
