@@ -122,35 +122,34 @@ print(result.summary)
 
 ---
 
-## Evaluation Categories
+## Evaluation Metrics
 
-### Retrieval Metrics
+### Retrieval
 - Context Precision
 - Context Recall
-- Recall@K / Precision@K
+- Precision@K
+- Recall@K
 - Hit Rate
 - Mean Reciprocal Rank (MRR)
-- NDCG
+- Normalized Discounted Cumulative Gain (NDCG)
 
-### Generation Metrics
-- Faithfulness (via Ragas)
-- Answer Relevancy (via Ragas)
-- Hallucination Detection (via DeepEval)
+### Generation
+- Faithfulness
+- Answer Relevancy
+- Hallucination Detection
 - Semantic Similarity
-- Exact Match / F1 Score
-- BLEU / ROUGE
+- Exact Match
+- F1 Score
+- BLEU
+- ROUGE
 - BERTScore
 
-### Performance Metrics
-- Embedding latency
-- Retrieval latency
-- LLM latency
-- Total latency
+### Performance
+- Latency (embedding, retrieval, LLM stages)
 
-### Cost Metrics
+### Cost
 - Token counting (prompt, completion, total)
 - Cost estimation per provider
-- Total experiment cost
 
 ---
 
@@ -158,15 +157,23 @@ print(result.summary)
 
 ### LLM Providers
 - OpenAI
-- Google Gemini
 - Anthropic
+- Google Gemini
 - Groq
 - OpenRouter
 - Ollama (local)
 
 ### Retriever Providers
 - Chroma
-- (More coming soon)
+- Qdrant
+- Pinecone
+- Weaviate
+- FAISS
+- pgvector
+- Elasticsearch
+- BM25
+- Memory
+- HTTP
 
 ---
 
