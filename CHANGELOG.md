@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+No changes yet.
+
+---
+
+## [0.2.0] - 2026-07-10
+
 ### Added
 
 - **CLI Improvements**
@@ -193,5 +199,6 @@ This project follows [Semantic Versioning](https://semver.org/):
 
 ## Links
 
-[Unreleased]: https://github.com/openagenthq/openagent-eval/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/openagenthq/openagent-eval/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/openagenthq/openagent-eval/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/openagenthq/openagent-eval/releases/tag/v0.1.0
