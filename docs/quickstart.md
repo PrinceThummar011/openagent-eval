@@ -1,0 +1,157 @@
+# Quickstart
+
+This guide takes you from a fresh install to your first evaluation report in a few minutes.
+
+## 1. Initialize a configuration
+
+```bash
+oaeval init
+```
+
+This writes a `config.yaml` with sensible defaults:
+
+```yaml title="config.yaml"
+dataset:
+  path: data/questions.json
+  # limit: 100
+
+llm:
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0.0
+
+retriever:
+  provider: chroma
+  settings:
+    collection_name: my_collection
+
+metrics:
+  retrieval:
+    - context_precision
+    - context_recall
+    - mrr
+  generation:
+    - faithfulness
+    - answer_relevancy
+  performance:
+    - latency
+  cost:
+    - token_count
+
+report:
+  output: terminal
+  output_dir: ./reports
+```
+
+!!! tip "Legacy shorthand still works"
+    The loader also accepts the flat, single-string form used in older examples:
+
+    ```yaml
+    dataset: data/questions.json
+    metrics: [faithfulness, answer_relevancy, latency, token_count]
+    ```
+
+    It is normalized to the canonical nested structure automatically.
+
+## 2. Prepare a dataset
+
+OpenAgent Eval loads datasets in **JSON**, **JSONL**, **CSV**, or **PDF** format. Each item needs a
+`question`; `ground_truth`, `context`, and `ground_truth_contexts` are optional.
+
+```json title="data/questions.json"
+[
+  {
+    "question": "What is the capital of France?",
+    "ground_truth": "The capital of France is Paris.",
+    "context": "France is a country in Western Europe. Its capital is Paris."
+  }
+]
+```
+
+## 3. Run the evaluation
+
+```bash
+oaeval run config.yaml
+```
+
+Override the output format from the command line:
+
+```bash
+oaeval run config.yaml --output html
+```
+
+## 4. View the report
+
+```bash
+oaeval report latest
+```
+
+Other report commands:
+
+```bash
+# List all stored evaluations
+oaeval list
+
+# Compare two experiments
+oaeval compare exp-001 exp-002
+```
+
+## 5. Use the Python SDK
+
+The same pipeline is available as a library so you can embed it in `pytest`. The `Engine.run` method is
+`async`, so drive it with `asyncio.run`:
+
+```python title="test_eval.py"
+import asyncio
+
+from openagent_eval.config.models import Config
+from openagent_eval.core.engine import Engine
+
+config = Config(
+    dataset={"path": "data/questions.json"},
+    llm={"provider": "openai", "model": "gpt-4o-mini"},
+    retriever={"provider": "chroma", "settings": {"collection_name": "my_collection"}},
+    metrics={"generation": ["faithfulness"], "retrieval": ["context_precision"]},
+)
+
+dataset = [
+    {
+        "question": "What is RAG?",
+        "ground_truth": "Retrieval-Augmented Generation.",
+        "context": "RAG combines retrieval with generation.",
+    }
+]
+
+engine = Engine(config)
+report = asyncio.run(engine.run(dataset))
+
+assert report.summary["metrics_summary"]["faithfulness"] >= 0.8
+```
+
+## Configuration reference
+
+| Key | Type | Description |
+| --- | --- | --- |
+| `dataset.path` | `str` | Path to the dataset file |
+| `dataset.format` | `str` \| `null` | Explicit format: `json`, `jsonl`, `csv`, `pdf` (auto-detected from extension otherwise) |
+| `dataset.limit` | `int` \| `null` | Maximum number of items to load |
+| `dataset.shuffle` | `bool` | Shuffle items before loading |
+| `llm.provider` | `str` | `openai`, `gemini`, `anthropic`, `groq`, `openrouter`, `ollama`, `mock` |
+| `llm.model` | `str` | Model identifier (e.g. `gpt-4o-mini`) |
+| `llm.temperature` | `float` | Sampling temperature (default `0.0`) |
+| `retriever.provider` | `str` | Chroma, Memory, BM25, FAISS, Qdrant, Pinecone, Weaviate, Elasticsearch, PGVector, HTTP, Mock |
+| `retriever.settings` | `dict` | Provider-specific options (e.g. `collection_name`) |
+| `retriever.embedder` | `dict` \| `null` | Embedder config for local vector retrievers |
+| `metrics.retrieval` | `list[str]` | Retrieval metric names |
+| `metrics.generation` | `list[str]` | Generation metric names |
+| `metrics.performance` | `list[str]` | Performance metric names |
+| `metrics.cost` | `list[str]` | Cost metric names |
+| `report.output` | `str` | `terminal`, `markdown`, `html`, `json` |
+| `report.output_dir` | `str` | Directory for persisted reports |
+
+## Next steps
+
+- Browse the [Providers](providers/index.md) to set up your LLM, retriever, and embedder.
+- Understand the internals on the [Architecture](architecture.md) page.
+- Learn every flag in the [CLI Reference](cli.md).
+- Discover the full API in [API Reference](api.md).
