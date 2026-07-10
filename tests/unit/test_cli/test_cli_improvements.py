@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -13,6 +14,12 @@ from openagent_eval.cli.main import app
 from openagent_eval.cli.context import CLIContext, get_context, set_context, reset_context
 
 runner = CliRunner()
+
+
+def strip_ansi(text: str) -> str:
+    """Strip ANSI escape codes from text."""
+    ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
+    return ansi_escape.sub('', text)
 
 
 class TestGlobalFlags:
@@ -150,13 +157,15 @@ class TestRunCommandImprovements:
         """Test that run help shows dry-run option."""
         result = runner.invoke(app, ["run", "--help"])
         assert result.exit_code == 0
-        assert "dry-run" in result.output.lower() or "dry_run" in result.output.lower()
+        output = strip_ansi(result.output).lower()
+        assert "dry-run" in output or "dry_run" in output
 
     def test_run_help_shows_metrics(self):
         """Test that run help shows metrics option."""
         result = runner.invoke(app, ["run", "--help"])
         assert result.exit_code == 0
-        assert "metrics" in result.output.lower()
+        output = strip_ansi(result.output).lower()
+        assert "metrics" in output
 
     def test_run_dry_run_missing_config(self):
         """Test dry-run with missing config."""
@@ -171,7 +180,8 @@ class TestDoctorCommandImprovements:
         """Test that doctor help shows check-api option."""
         result = runner.invoke(app, ["doctor", "--help"])
         assert result.exit_code == 0
-        assert "check-api" in result.output.lower() or "check_api" in result.output.lower()
+        output = strip_ansi(result.output).lower()
+        assert "check-api" in output or "check_api" in output
 
 
 class TestListCommandImprovements:
@@ -271,7 +281,8 @@ class TestHelpOutput:
         """Test that main help shows global flags."""
         result = runner.invoke(app, ["--help"])
         assert result.exit_code == 0
-        assert "--quiet" in result.output or "-q" in result.output
-        assert "--json" in result.output
-        assert "--no-color" in result.output
-        assert "--verbose" in result.output or "-v" in result.output
+        output = strip_ansi(result.output)
+        assert "--quiet" in output or "-q" in output
+        assert "--json" in output
+        assert "--no-color" in output
+        assert "--verbose" in output or "-v" in output
