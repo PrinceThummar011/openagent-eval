@@ -147,11 +147,40 @@ nav:
   - Getting Started:
       - Installation: installation.md
       - Quickstart: quickstart.md
+  - Providers:
+      - providers/index.md
+      - LLM:
+          - providers/llm/index.md
+          - OpenAI: providers/llm/openai.md
+          - Anthropic: providers/llm/anthropic.md
+          - Gemini: providers/llm/gemini.md
+          - Groq: providers/llm/groq.md
+          - OpenRouter: providers/llm/openrouter.md
+          - Ollama: providers/llm/ollama.md
+          - Mock: providers/llm/mock.md
+      - Retrievers:
+          - providers/retrievers/index.md
+          - Chroma: providers/retrievers/chroma.md
+          - Qdrant: providers/retrievers/qdrant.md
+          - Pinecone: providers/retrievers/pinecone.md
+          - Weaviate: providers/retrievers/weaviate.md
+          - FAISS: providers/retrievers/faiss.md
+          - PGVector: providers/retrievers/pgvector.md
+          - Elasticsearch: providers/retrievers/elasticsearch.md
+          - BM25: providers/retrievers/bm25.md
+          - Memory: providers/retrievers/memory.md
+          - HTTP: providers/retrievers/http.md
+          - Mock: providers/retrievers/mock.md
+      - Embedders:
+          - providers/embedders/index.md
+          - Sentence Transformers: providers/embedders/sentence_transformers.md
+          - Mock: providers/embedders/mock.md
   - Guide:
       - Architecture: architecture.md
       - CLI Reference: cli.md
       - API Reference: api.md
-      - Examples: examples.md
+  - Examples:
+      - examples/index.md
   - Community:
       - Contributing: contributing.md
       - Roadmap: roadmap.md
