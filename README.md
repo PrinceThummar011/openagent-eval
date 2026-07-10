@@ -35,6 +35,12 @@ OpenAgent Eval is a local-first, developer-friendly evaluation framework that ru
 pip install openagent-eval
 ```
 
+To upgrade to the latest version:
+
+```bash
+pip install --upgrade openagent-eval
+```
+
 For development:
 
 ```bash
