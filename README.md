@@ -25,6 +25,7 @@ OpenAgent Eval is a local-first, developer-friendly evaluation framework that ru
 - **Comprehensive Metrics** - Retrieval, generation, performance, and cost evaluation
 - **Beautiful Reports** - Terminal, Markdown, HTML, and JSON output formats
 - **Failure Analysis** - Identify why evaluations fail, not just that they failed
+- **Developer Experience** - Shell completion, config auto-discovery, dry-run mode, and more
 
 ---
 
@@ -52,38 +53,30 @@ uv sync
 oaeval init
 ```
 
-This creates a `config.yaml` file with default settings.
+This creates a `config.yaml` file with default settings. Use the interactive wizard to select your provider, model, and metrics:
 
-### 2. Configure Your Setup
-
-Edit `config.yaml`:
-
-```yaml
-dataset: data/questions.json
-
-retriever:
-  provider: chroma
-  settings:
-    collection_name: my_docs
-
-llm:
-  provider: openai
-  model: gpt-4o
-
-metrics:
-  - faithfulness
-  - answer_relevancy
-  - hallucination
-  - latency
-
-output: terminal
-output_dir: ./reports
+```bash
+oaeval init --interactive
 ```
+
+### 2. Validate Configuration
+
+```bash
+oaeval validate config.yaml
+```
+
+Check your configuration without running the evaluation.
 
 ### 3. Run Evaluation
 
 ```bash
 oaeval run config.yaml
+```
+
+Or use dry-run mode to preview the evaluation plan:
+
+```bash
+oaeval run config.yaml --dry-run
 ```
 
 ### 4. View Results
@@ -106,14 +99,226 @@ oaeval report latest
 
 ## CLI Commands
 
+### Core Commands
+
 | Command | Description |
 |---------|-------------|
-| `oaeval init` | Create configuration file |
+| `oaeval init` | Create configuration file (interactive wizard) |
 | `oaeval run <config>` | Run evaluation pipeline |
 | `oaeval report <id>` | View evaluation reports |
 | `oaeval compare <a> <b>` | Compare two experiments |
 | `oaeval list` | List previous evaluations |
 | `oaeval doctor` | Check environment and dependencies |
+| `oaeval validate <config>` | Validate configuration |
+| `oaeval delete <id>` | Delete evaluation reports |
+| `oaeval completion <shell>` | Generate shell completion scripts |
+
+### Global Flags
+
+| Flag | Description |
+|------|-------------|
+| `--quiet`, `-q` | Suppress non-essential output |
+| `--json` | Output machine-readable JSON |
+| `--no-color` | Disable color output |
+| `--verbose`, `-v` | Enable verbose output |
+| `--version`, `-V` | Show version and exit |
+
+### Shell Completion
+
+Enable tab completion for your shell:
+
+```bash
+# Bash
+oaeval completion bash >> ~/.bashrc
+
+# Zsh
+oaeval completion zsh >> ~/.zshrc
+
+# Fish
+oaeval completion fish > ~/.config/fish/completions/oaeval.fish
+```
+
+### Config Auto-Discovery
+
+OpenAgent Eval automatically finds your configuration file:
+
+1. `OAEVAL_CONFIG` environment variable
+2. `config.yaml` or `config.yml` in current directory
+3. `oaeval.yaml` or `oaeval.yml` in current directory
+4. Parent directories up to filesystem root
+
+---
+
+## Usage Examples
+
+### Validate Configuration
+
+```bash
+oaeval validate config.yaml
+```
+
+Example output:
+
+```
+OpenAgent Eval - Configuration Validator
+Config: config.yaml
+
+1. Checking YAML syntax...
+  OK YAML syntax valid
+
+2. Validating configuration schema...
+  OK Configuration schema valid
+
+3. Checking API keys...
+  OK All required API keys configured
+
+4. Checking dataset...
+  OK Dataset found: data/questions.json
+  Size: 12.5 KB
+
+5. Checking output directory...
+  OK Output directory exists: ./reports
+
+6. Checking provider configuration...
+  LLM: openai (gpt-4o)
+  Retriever: chroma
+
+7. Checking metrics...
+  Configured: 5 metrics
+    Retrieval: context_precision, context_recall, mrr
+    Generation: faithfulness, answer_relevancy
+    Performance: latency
+    Cost: token_count
+
+Summary:
+PASSED Configuration is valid
+
+Ready to run: oaeval run <config>
+```
+
+### Dry-Run Mode
+
+```bash
+oaeval run config.yaml --dry-run
+```
+
+Example output:
+
+```
+OpenAgent Eval - Dry Run Mode
+
+Configuration Summary:
+  Config file: config.yaml
+  Dataset: data/questions.json
+  LLM: openai (gpt-4o)
+  Retriever: chroma
+  Output: terminal
+  Output dir: ./reports
+
+Metrics (5):
+  Retrieval: context_precision, context_recall, mrr
+  Generation: faithfulness, answer_relevancy
+  Performance: latency
+  Cost: token_count
+
+Dataset:
+  OK Loaded 500 items
+
+  Sample item:
+    question: What is the capital of France?
+    answer: Paris is the capital of France.
+    ground_truth: Paris
+
+This was a dry run. No evaluations were performed.
+Run 'oaeval run <config>' to execute the evaluation.
+```
+
+### Run with Metrics Override
+
+```bash
+oaeval run config.yaml --metrics faithfulness,answer_relevancy,latency
+```
+
+### JSON Output
+
+```bash
+oaeval run config.yaml --json
+```
+
+Example output:
+
+```json
+{
+  "status": "success",
+  "report_path": "reports/eval_2024_01_15.json",
+  "elapsed_seconds": 125.42,
+  "summary": {
+    "total_items": 500,
+    "successful_evaluations": 500,
+    "failed_evaluations": 0,
+    "metrics_summary": {
+      "faithfulness": 0.918,
+      "answer_relevancy": 0.892
+    }
+  }
+}
+```
+
+### List with Sorting
+
+```bash
+oaeval list --sort score --limit 5
+```
+
+### Delete Reports
+
+```bash
+# Delete a specific report
+oaeval delete report_2024_01_15
+
+# Delete all reports
+oaeval delete all --force
+```
+
+### Check Environment
+
+```bash
+oaeval doctor --check-api
+```
+
+Example output:
+
+```
+OpenAgent Eval - Environment Check
+
+Environment Status
+  Component       Status    Details
+  Python          OK        v3.11.5
+  openagent-eval  OK        v0.1.0
+  typer           OK        CLI framework
+  rich            OK        Terminal UI
+  pydantic        OK        Data validation
+
+API Key Availability
+  Provider      Environment Variable    Status
+  OpenAI        OPENAI_API_KEY          Available
+  Gemini        GEMINI_API_KEY          Not set
+  Anthropic     ANTHROPIC_API_KEY       Available
+
+API Connectivity Tests
+  OK OpenAI: reachable
+  OK Anthropic: reachable
+
+Configuration:
+  OK Found config: config.yaml
+
+Summary:
+  OK Python version is compatible
+  OK Available providers: OpenAI, Anthropic
+
+Recommendations
+  - Set GEMINI_API_KEY for Gemini support
+```
 
 ---
 
@@ -195,6 +400,9 @@ print(report.summary)
 openagent-eval/
 ├── openagent_eval/          # Main package
 │   ├── cli/                 # CLI commands (Typer)
+│   │   ├── commands/        # Command implementations
+│   │   ├── utils/           # CLI utilities
+│   │   └── context.py       # Global CLI context
 │   ├── config/              # Configuration system (Pydantic)
 │   ├── core/                # Core orchestration
 │   ├── datasets/            # Dataset loaders
@@ -243,6 +451,9 @@ uv run pytest --cov=openagent_eval
 
 # Run specific test file
 uv run pytest tests/unit/test_exceptions.py
+
+# Run CLI tests
+uv run pytest tests/unit/test_cli/
 ```
 
 ---
