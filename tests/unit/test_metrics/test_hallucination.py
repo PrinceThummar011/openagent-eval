@@ -47,11 +47,20 @@ def _install_fake_deepeval() -> None:
 
 @pytest.fixture
 def fake_deepeval(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Replace deepeval modules with fakes so the DeepEval branch runs offline."""
+    # Save originals so we can restore them after the test.
+    originals = {}
+    for mod_name in ("deepeval", "deepeval.metrics", "deepeval.test_case"):
+        originals[mod_name] = sys.modules.pop(mod_name, None)
+
     _install_fake_deepeval()
     yield
-    for mod in ("deepeval", "deepeval.metrics", "deepeval.test_case"):
-        monkeypatch.undo()
-        sys.modules.pop(mod, None)
+    # Restore originals (or remove if there were none).
+    for mod_name, original in originals.items():
+        if original is not None:
+            sys.modules[mod_name] = original
+        else:
+            sys.modules.pop(mod_name, None)
 
 
 def test_deepeval_path_does_not_invert_score(fake_deepeval: None) -> None:
