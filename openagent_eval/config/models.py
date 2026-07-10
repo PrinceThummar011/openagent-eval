@@ -40,17 +40,52 @@ class RetrieverConfig(BaseModel):
 
     provider: str = Field(..., description="Retriever provider name (e.g., chroma)")
     settings: dict[str, Any] = Field(default_factory=dict, description="Provider-specific settings")
+    embedder: "EmbedderConfig | None" = Field(
+        None,
+        description="Embedder config for retrievers that need local embeddings "
+        "(e.g. memory, faiss, qdrant, pinecone, pgvector). Ignored by "
+        "server-side embedding backends (chroma, weaviate).",
+    )
+
+
+class EmbedderConfig(BaseModel):
+    """Embedder configuration for retrievers that embed locally.
+
+    Example:
+        ```yaml
+        retriever:
+          provider: memory
+          embedder:
+            provider: sentence_transformers
+            model: all-MiniLM-L6-v2
+        ```
+    """
+
+    provider: str = Field(
+        ..., description="Embedder provider name (e.g., sentence_transformers)"
+    )
+    model: str = Field(
+        "all-MiniLM-L6-v2", description="Embedding model identifier"
+    )
+    settings: dict[str, Any] = Field(
+        default_factory=dict, description="Provider-specific settings (e.g. device)"
+    )
 
 
 class MetricsConfig(BaseModel):
-    """Metrics configuration."""
+    """Metrics configuration.
+
+    Metric names must match the keys in ``openagent_eval.metrics.METRIC_REGISTRY``
+    (e.g. ``context_precision``, ``context_recall``, ``mrr``, ``faithfulness``,
+    ``answer_relevancy``, ``latency``, ``token_count``).
+    """
 
     retrieval: list[str] = Field(
-        default_factory=lambda: ["precision", "recall", "mrr"],
+        default_factory=lambda: ["context_precision", "context_recall", "mrr"],
         description="Retrieval metrics to compute",
     )
     generation: list[str] = Field(
-        default_factory=lambda: ["faithfulness", "relevancy"],
+        default_factory=lambda: ["faithfulness", "answer_relevancy"],
         description="Generation metrics to compute",
     )
     performance: list[str] = Field(
@@ -58,7 +93,7 @@ class MetricsConfig(BaseModel):
         description="Performance metrics to track",
     )
     cost: list[str] = Field(
-        default_factory=lambda: ["tokens"],
+        default_factory=lambda: ["token_count"],
         description="Cost metrics to track",
     )
 

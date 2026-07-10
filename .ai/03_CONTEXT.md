@@ -9,19 +9,12 @@
 
 | Field | Value |
 |-------|-------|
-<<<<<<< HEAD
-| **Phase** | Phase 1 Complete |
-| **Status** | Foundation Implemented |
-| **Last Updated** | 2025-07-08 |
-| **Next Action** | Ready for Phase 2 (Data Layer) |
-=======
-| **Phase** | Pre-implementation |
-| **Status** | Git Workflow Rules Applied |
-| **Last Updated** | 2026-07-08 |
-| **Next Action** | Awaiting approval to scaffold project |
-| **Current Branch** | main |
+| **Phase** | Phase 7 Complete |
+| **Status** | Evaluation pipeline implemented (retriever → LLM → metrics) |
+| **Last Updated** | 2026-07-10 |
+| **Next Action** | Real provider runs (Chroma/OpenAI) / Phase 8 Documentation |
+| **Current Branch** | feature/functional-pipeline |
 | **Remote** | https://github.com/OpenAgentHQ/openagent-eval.git |
->>>>>>> fd5438a9a42901cddae6ccd191cff531f23a81c7
 
 ---
 
@@ -103,45 +96,69 @@ SDK (openagent_eval - Core Evaluation API)
 - [x] Linting and formatting (ruff)
 
 ### Milestone 2: Data Layer
-- [ ] BaseDatasetLoader interface
-- [ ] JSON loader
-- [ ] JSONL loader
-- [ ] CSV loader
-- [ ] HuggingFace loader
-- [ ] Dataset validation
+- [x] BaseDatasetLoader interface
+- [x] JSON loader
+- [x] JSONL loader
+- [x] CSV loader
+- [x] HuggingFace loader
+- [x] Dataset validation
 
 ### Milestone 3: Metrics
-- [ ] BaseMetric interface
-- [ ] MetricResult model
-- [ ] Retrieval metrics
-- [ ] Generation metrics
-- [ ] Classic metrics (BLEU, ROUGE, etc.)
+- [x] BaseMetric interface
+- [x] MetricResult model
+- [x] Retrieval metrics
+- [x] Generation metrics
+- [x] Classic metrics (BLEU, ROUGE, etc.)
 
 ### Milestone 4: Reports
-- [ ] ReportGenerator interface
-- [ ] Terminal report (Rich)
-- [ ] Markdown report
-- [ ] HTML report (Jinja2)
-- [ ] JSON report
+- [x] ReportGenerator interface
+- [x] Terminal report (Rich)
+- [x] Markdown report
+- [x] HTML report (Jinja2)
+- [x] JSON report
 
 ### Milestone 5: Providers
-- [ ] LLMProvider interface
-- [ ] Retriever interface
-- [ ] OpenAI adapter
-- [ ] Gemini adapter
-- [ ] Anthropic adapter
-- [ ] Chroma adapter
+- [x] LLMProvider interface
+- [x] Retriever interface
+- [x] OpenAI adapter
+- [x] Gemini adapter
+- [x] Anthropic adapter
+- [x] Groq adapter
+- [x] OpenRouter adapter
+- [x] Ollama adapter (token tracking only)
+- [x] Chroma adapter
+- [x] Unit tests (138 tests)
 
 ### Milestone 6: Plugin System
-- [ ] Plugin registry
-- [ ] Entry point discovery
-- [ ] User extension examples
+- [x] Plugin registry extended with entry point discovery
+- [x] Entry point discovery mechanism implemented
+- [x] Plugin loading mechanism implemented
+- [x] Plugin development guide created
+- [x] Example custom metric plugin created
+- [x] Unit tests for plugin system written (27 tests)
+
+### Milestone 7: Functional Evaluation Pipeline (CORRECTED)
+> NOTE: The pipeline (`core/pipeline.py`) was previously a STUB — `_evaluate_item`
+> never called a retriever, LLM, or any metric, so `oaeval run` produced empty
+> results despite the earlier "complete" status. This was fixed on 2026-07-10.
+- [x] `Pipeline._evaluate_item` now runs Retriever → LLM → Metrics end-to-end
+- [x] `Engine` wires providers (factory) + metric registry + `Executor`
+- [x] `providers/factory.py` maps provider config → adapter instances
+- [x] Mock LLM + Mock Retriever for offline dry-run (no API keys)
+- [x] `Executor.gather` for bounded parallel item evaluation (D006)
+- [x] `recall_at_k` fixed to true recall (was binary, == hit_rate)
+- [x] `Pipeline._compute_summary` reports real error count (was hardcoded 0)
+- [x] Hallucination metric no longer swallows all errors
+- [x] Heavy models (SentenceTransformer/Ragas) cached per metric instance
+- [x] Config template + `MetricsConfig` defaults aligned to registry names
+- [x] `DatasetItemModel.ground_truth_contexts` added for retrieval eval
+- [x] Integration test (mock end-to-end) + recall_at_k unit test added
 
 ---
 
 ## Current Questions
 
-None at this time. Phase 1 is complete.
+None at this time. Phase 5 is complete.
 
 ---
 
@@ -195,12 +212,17 @@ chore/{description}        # Maintenance tasks
 ## Notes
 
 - Phase 1 is complete - all foundation work done
-- 50 tests passing
-- CLI functional with all commands (init, run, report, compare, list, doctor)
-- Configuration system working with YAML + Pydantic
-- Exception hierarchy implemented
-- Core module stubs created
-- Ready to proceed with Phase 2 (Data Layer)
+- Phase 2 is complete - Data Layer implemented
+- Phase 3 is complete - Metrics System implemented (86 tests)
+- Phase 4 is complete - Reports System implemented (78 tests)
+- Phase 5 is complete - Provider Layer implemented (138 tests)
+- Phase 6 is complete - Plugin System implemented (27 tests)
+- Phase 7 is complete - Evaluation pipeline is now functional (was a stub)
+- CORRECTION: earlier "517+ passing / all phases complete" status was inaccurate —
+  the core pipeline did not actually evaluate. That gap is closed.
+- `oaeval run` now produces real answers, computed metrics, token usage, and latency.
+- Offline dry-run works via `llm.provider: mock` + `retriever.provider: mock`.
+- Ready to proceed with Phase 8 (Documentation) or real provider runs.
 
 ---
 
@@ -208,20 +230,7 @@ chore/{description}        # Maintenance tasks
 
 | Date | Change |
 |------|--------|
-<<<<<<< HEAD
-| 2025-07-08 | Initial CONTEXT.md created |
-| 2025-07-08 | Updated Milestone 0 completion status |
-| 2025-07-08 | Added TASKS.md to key files |
-| 2025-07-08 | Architecture analysis completed |
-| 2025-07-08 | Applied architecture decisions D011-D016 |
-| 2025-07-08 | Updated with project identity (repository, package, CLI) |
-| 2025-07-08 | Added ARCHITECTURE.md to key files |
-| 2025-07-08 | Created .ai/ directory structure |
-| 2025-07-08 | Moved all project files to .ai/ |
-| 2025-07-08 | Phase 1 completed - all foundation work done |
-| 2025-07-08 | 50 tests passing |
-| 2025-07-08 | CLI functional with all commands |
-=======
+| 2026-07-10 | Pipeline stub fixed: retriever→LLM→metrics wired; mock providers added; recall_at_k/summary/hallucination bugs fixed; config aligned |
 | 2026-07-08 | Initial CONTEXT.md created |
 | 2026-07-08 | Updated Milestone 0 completion status |
 | 2026-07-08 | Added TASKS.md to key files |
@@ -234,4 +243,15 @@ chore/{description}        # Maintenance tasks
 | 2026-07-08 | Connected to GitHub repository |
 | 2026-07-08 | Applied Git workflow rules (GitHub Flow) |
 | 2026-07-08 | Corrected all dates from 2025 to 2026 |
->>>>>>> fd5438a9a42901cddae6ccd191cff531f23a81c7
+| 2026-07-08 | Phase 2 completed - Data Layer implemented |
+| 2026-07-08 | Dataset loaders (JSON, JSONL, CSV, HuggingFace) working |
+| 2026-07-08 | Ready for Phase 3 (Metrics System) |
+| 2026-07-08 | Phase 3 completed - Metrics System implemented |
+| 2026-07-08 | Phase 4 completed - Reports System implemented |
+| 2026-07-08 | Phase 5 completed - Provider Layer implemented |
+| 2026-07-08 | 138 new provider tests added (490+ total) |
+| 2026-07-08 | PR #7 created for Phase 5 |
+| 2026-07-08 | Phase 6 completed - Plugin System implemented |
+| 2026-07-08 | 27 new plugin tests added (517+ total) |
+| 2026-07-08 | Created plugin development guide |
+| 2026-07-10 | Added PDF dataset loader (PDFDatasetLoader) with pypdf optional dependency |

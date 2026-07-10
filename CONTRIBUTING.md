@@ -1,6 +1,6 @@
 # Contributing to OpenAgent Eval
 
-Thank you for your interest in contributing! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to OpenAgent Eval! This document provides guidelines and information for contributors.
 
 ## Code of Conduct
 
@@ -124,6 +124,33 @@ uv run pytest tests/unit/test_exceptions.py
 # Run slow tests
 uv run pytest -m slow
 ```
+
+### Writing Tests
+
+```python
+import pytest
+from unittest.mock import Mock
+
+class TestMyMetric:
+    @pytest.fixture
+    def metric(self):
+        return MyMetric()
+    
+    def test_evaluate_success(self, metric):
+        result = metric.evaluate(answer="test", context="context")
+        assert result.score >= 0.0
+        assert result.score <= 1.0
+    
+    def test_evaluate_edge_case(self, metric):
+        result = metric.evaluate(answer="", context="")
+        assert result.score == 0.0
+```
+
+### Test Coverage
+
+- Target: 80%+ coverage
+- Mock all external dependencies
+- Test both success and failure paths
 
 ## Commit Guidelines
 

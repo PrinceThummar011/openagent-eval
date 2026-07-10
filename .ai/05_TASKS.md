@@ -7,85 +7,23 @@
 
 ## TODO
 
-### Phase 2: Data Layer
-- [ ] Define BaseDatasetLoader interface
-- [ ] Implement JSON dataset loader
-- [ ] Implement JSONL dataset loader
-- [ ] Implement CSV dataset loader
-- [ ] Implement HuggingFace dataset loader
-- [ ] Create dataset validation (Pydantic models)
-- [ ] Implement dataset schema enforcement
-- [ ] Write unit tests for all loaders
-
-### Phase 3: Metrics System
-- [ ] Define BaseMetric interface
-- [ ] Create MetricResult model
-- [ ] Implement retrieval metrics:
-  - [ ] Context Precision
-  - [ ] Context Recall
-  - [ ] Recall@K
-  - [ ] Precision@K
-  - [ ] Hit Rate
-  - [ ] Mean Reciprocal Rank (MRR)
-  - [ ] NDCG
-- [ ] Implement generation metrics:
-  - [ ] Faithfulness (Ragas integration)
-  - [ ] Answer Relevancy (Ragas integration)
-  - [ ] Hallucination Detection (DeepEval integration)
-  - [ ] Semantic Similarity (Sentence Transformers)
-  - [ ] Exact Match (HF Evaluate)
-  - [ ] F1 Score (HF Evaluate)
-  - [ ] BLEU (HF Evaluate)
-  - [ ] ROUGE (HF Evaluate)
-  - [ ] BERTScore
-- [ ] Implement performance metrics:
-  - [ ] Embedding latency
-  - [ ] Retrieval latency
-  - [ ] LLM latency
-  - [ ] Total latency
-- [ ] Implement cost metrics:
-  - [ ] Token counting
-  - [ ] Cost estimation
-- [ ] Write unit tests for all metrics
-
-### Phase 4: Reports
-- [ ] Define ReportGenerator interface
-- [ ] Implement terminal report (Rich)
-- [ ] Implement Markdown report
-- [ ] Implement HTML report (Jinja2)
-- [ ] Implement JSON report
-- [ ] Create failure analysis reporting
-- [ ] Implement experiment comparison reports
-- [ ] Write unit tests for all reporters
-
-### Phase 5: Providers
-- [ ] Define LLMProvider interface
-- [ ] Define Retriever interface
-- [ ] Implement OpenAI adapter
-- [ ] Implement Gemini adapter
-- [ ] Implement Anthropic adapter
-- [ ] Implement Groq adapter
-- [ ] Implement OpenRouter adapter
-- [ ] Implement Ollama adapter (token tracking only)
-- [ ] Implement Chroma retriever adapter
-- [ ] Write unit tests for all providers
-
 ### Phase 6: Plugin System
-- [ ] Design plugin registry
-- [ ] Implement entry point discovery
-- [ ] Create plugin loading mechanism
-- [ ] Write plugin development guide
-- [ ] Create example custom metric
-- [ ] Write unit tests for plugin system
+- [x] Design plugin registry
+- [x] Implement entry point discovery
+- [x] Create plugin loading mechanism
+- [x] Write plugin development guide
+- [x] Create example custom metric
+- [x] Write unit tests for plugin system
 
 ### Phase 7: CLI Commands
-- [ ] Implement `oaeval init`
-- [ ] Implement `oaeval run`
-- [ ] Implement `oaeval report`
-- [ ] Implement `oaeval compare`
-- [ ] Implement `oaeval list`
-- [ ] Implement `oaeval doctor`
-- [ ] Write CLI integration tests
+- [x] Implement `oaeval init`
+- [x] Implement `oaeval run` (now functional end-to-end)
+- [x] Implement `oaeval report`
+- [x] Implement `oaeval compare`
+- [x] Implement `oaeval list`
+- [x] Implement `oaeval doctor`
+- [x] Write CLI integration tests
+- [x] Wire evaluation pipeline (retriever → LLM → metrics) — was a stub
 
 ### Phase 8: Documentation
 - [ ] Create docs/01_vision.md
@@ -114,6 +52,36 @@
 
 ## COMPLETED
 
+### Phase 6: Plugin System
+- [x] Design plugin registry
+- [x] Implement entry point discovery
+- [x] Create plugin loading mechanism
+- [x] Write plugin development guide
+- [x] Create example custom metric
+- [x] Write unit tests for plugin system
+
+### Phase 5: Providers
+- [x] Define LLMProvider interface
+- [x] Define Retriever interface
+- [x] Implement OpenAI adapter
+- [x] Implement Gemini adapter
+- [x] Implement Anthropic adapter
+- [x] Implement Groq adapter
+- [x] Implement OpenRouter adapter
+- [x] Implement Ollama adapter (token tracking only)
+- [x] Implement Chroma retriever adapter
+- [x] Write unit tests for all providers (138 tests)
+
+### Phase 4: Reports
+- [x] Define ReportGenerator interface
+- [x] Implement terminal report (Rich)
+- [x] Implement Markdown report
+- [x] Implement HTML report (Jinja2)
+- [x] Implement JSON report
+- [x] Create failure analysis reporting
+- [x] Implement experiment comparison reports
+- [x] Write unit tests for all reporters (78 tests)
+
 ### Phase 1: Project Foundation
 - [x] Initialize project with `uv init`
 - [x] Create `pyproject.toml` with all dependencies
@@ -137,6 +105,45 @@
 - [x] Update all project files
 - [x] Create .ai/ directory structure
 - [x] Move all project files to .ai/
+
+### Phase 2: Data Layer
+- [x] Define BaseDatasetLoader interface
+- [x] Implement JSON dataset loader
+- [x] Implement JSONL dataset loader
+- [x] Implement CSV dataset loader
+- [x] Implement HuggingFace dataset loader
+- [x] Implement PDF dataset loader (pypdf, optional `pdf` extra)
+- [x] Create dataset validation (Pydantic models)
+- [x] Implement dataset schema enforcement
+- [x] Write unit tests for all loaders
+
+### Phase 3: Metrics System
+- [x] Define BaseMetric interface
+- [x] Create MetricResult model
+- [x] Implement retrieval metrics:
+  - [x] Context Precision
+  - [x] Context Recall
+  - [x] Recall@K
+  - [x] Precision@K
+  - [x] Hit Rate
+  - [x] Mean Reciprocal Rank (MRR)
+  - [x] NDCG
+- [x] Implement generation metrics:
+  - [x] Faithfulness (Ragas integration stub)
+  - [x] Answer Relevancy (Ragas integration stub)
+  - [x] Hallucination Detection (DeepEval integration stub)
+  - [x] Semantic Similarity (Sentence Transformers)
+  - [x] Exact Match
+  - [x] F1 Score
+  - [x] BLEU (HF Evaluate)
+  - [x] ROUGE (HF Evaluate)
+  - [x] BERTScore
+- [x] Implement performance metrics:
+  - [x] Latency tracking
+- [x] Implement cost metrics:
+  - [x] Token counting
+  - [x] Cost estimation
+- [x] Write unit tests for all metrics (86 tests)
 
 ---
 
@@ -173,7 +180,10 @@ Phase 8 (Documentation) ← can run in parallel with Phase 7
 - Phase 1 is complete - all foundation work done
 - Phases 2-5 can be developed in parallel
 - Phase 6 requires interfaces from Phases 2-5
-- Phase 7 is integration work
+- Phase 7 is complete - CLI works and the evaluation pipeline is now functional
+- CORRECTION: the earlier "all phases complete / 517+ passing" claim was inaccurate;
+  the core pipeline was a stub that produced empty results. Fixed 2026-07-10.
+- `oaeval run` now retrieves, generates, and scores; offline dry-run via mock providers.
 - Phase 8 can start early and run in parallel
 - Exception hierarchy is part of Phase 1 (required foundation)
 - Core module (engine, pipeline, executor, registry) is part of Phase 1
@@ -194,18 +204,7 @@ Phase 8 (Documentation) ← can run in parallel with Phase 7
 
 | Date | Change |
 |------|--------|
-<<<<<<< HEAD
-| 2025-07-08 | Initial TASKS.md created |
-| 2025-07-08 | Updated with architecture decisions (D011-D016) |
-| 2025-07-08 | Added exception hierarchy to Phase 1 |
-| 2025-07-08 | Added core module to Phase 1 |
-| 2025-07-08 | Added ARCHITECTURE.md to Phase 1 |
-| 2025-07-08 | Created .ai/ directory structure |
-| 2025-07-08 | Moved all project files to .ai/ |
-| 2025-07-08 | Phase 1 completed - all foundation work done |
-| 2025-07-08 | 50 tests passing |
-| 2025-07-08 | CLI functional with all commands |
-=======
+| 2026-07-10 | Pipeline stub fixed; mock providers added; recall_at_k/summary/hallucination bugs fixed; config aligned to registry; Phase 7 marked complete |
 | 2026-07-08 | Initial TASKS.md created |
 | 2026-07-08 | Updated with architecture decisions (D011-D016) |
 | 2026-07-08 | Added exception hierarchy to Phase 1 |
@@ -213,4 +212,13 @@ Phase 8 (Documentation) ← can run in parallel with Phase 7
 | 2026-07-08 | Added ARCHITECTURE.md to Phase 1 |
 | 2026-07-08 | Created .ai/ directory structure |
 | 2026-07-08 | Moved all project files to .ai/ |
->>>>>>> fd5438a9a42901cddae6ccd191cff531f23a81c7
+| 2026-07-08 | Phase 1 completed - all foundation work done |
+| 2026-07-08 | Phase 2 completed - Data Layer implemented |
+| 2026-07-08 | Phase 3 completed - Metrics System implemented |
+| 2026-07-08 | 136 tests passing (50 existing + 86 new metrics tests) |
+| 2026-07-08 | Phase 4 completed - Reports System implemented (78 new tests) |
+| 2026-07-08 | Phase 5 completed - Provider Layer implemented (138 new tests) |
+| 2026-07-08 | PR #7 created for Phase 5 |
+| 2026-07-08 | Phase 6 completed - Plugin System implemented (27 new tests) |
+| 2026-07-08 | Created plugin development guide |
+| 2026-07-10 | Added PDF dataset loader (PDFDatasetLoader) with pypdf optional dependency |

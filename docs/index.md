@@ -138,7 +138,6 @@ Metric names map to the built-in registry (`openagent_eval.metrics.METRIC_REGIST
 | OpenAI, Google Gemini, Anthropic, Groq, OpenRouter, Ollama, Mock | Chroma, Memory, BM25, FAISS, Qdrant, Pinecone, Weaviate, Elasticsearch, PGVector, HTTP, Mock | Sentence-Transformers, Mock |
 
 Bring your own by implementing the provider base classes — see [API Reference](api.md).
-Explore the full [Provider guides](providers/index.md) for step-by-step setup.
 
 ---
 

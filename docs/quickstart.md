@@ -151,7 +151,6 @@ assert report.summary["metrics_summary"]["faithfulness"] >= 0.8
 
 ## Next steps
 
-- Browse the [Providers](providers/index.md) to set up your LLM, retriever, and embedder.
 - Understand the internals on the [Architecture](architecture.md) page.
 - Learn every flag in the [CLI Reference](cli.md).
 - Discover the full API in [API Reference](api.md).

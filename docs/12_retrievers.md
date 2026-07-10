@@ -35,7 +35,7 @@ metrics:
 
 ```bash
 export GROQ_API_KEY=gsk_...
-oaeval run config.yaml
+oaeval run --config config.yaml
 ```
 
 A fully working example (real Groq + Sentence-Transformers) lives at
@@ -242,25 +242,6 @@ retriever:
 ### `mock` — offline
 - Returns deterministic documents (the dataset's `ground_truth_contexts` when
   available) so the full pipeline runs without any vector store or API key.
-
-## Detailed provider guides
-
-For step-by-step configuration, Python SDK examples, and troubleshooting,
-see the per-provider guides:
-
-- **Retrievers:** [Chroma](providers/retrievers/chroma.md) ·
-  [Qdrant](providers/retrievers/qdrant.md) ·
-  [Pinecone](providers/retrievers/pinecone.md) ·
-  [Weaviate](providers/retrievers/weaviate.md) ·
-  [FAISS](providers/retrievers/faiss.md) ·
-  [PGVector](providers/retrievers/pgvector.md) ·
-  [Elasticsearch](providers/retrievers/elasticsearch.md) ·
-  [BM25](providers/retrievers/bm25.md) ·
-  [Memory](providers/retrievers/memory.md) ·
-  [HTTP](providers/retrievers/http.md) ·
-  [Mock](providers/retrievers/mock.md)
-- **Embedders:** [Sentence Transformers](providers/embedders/sentence_transformers.md) ·
-  [Mock](providers/embedders/mock.md)
 
 ## Adding a custom retriever
 

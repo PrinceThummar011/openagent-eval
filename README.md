@@ -2,7 +2,8 @@
 
 **Open-source CLI framework for evaluating RAG systems and AI Agents.**
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI Version](https://img.shields.io/pypi/v/openagent-eval.svg)](https://pypi.org/project/openagent-eval/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/openagent-eval.svg)](https://pypi.org/project/openagent-eval/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ---
@@ -133,35 +134,34 @@ print(report.summary)
 
 ---
 
-## Evaluation Categories
+## Evaluation Metrics
 
-### Retrieval Metrics
+### Retrieval
 - Context Precision
 - Context Recall
-- Recall@K / Precision@K
+- Precision@K
+- Recall@K
 - Hit Rate
 - Mean Reciprocal Rank (MRR)
-- NDCG
+- Normalized Discounted Cumulative Gain (NDCG)
 
-### Generation Metrics
-- Faithfulness (via Ragas)
-- Answer Relevancy (via Ragas)
-- Hallucination Detection (via DeepEval)
+### Generation
+- Faithfulness
+- Answer Relevancy
+- Hallucination Detection
 - Semantic Similarity
-- Exact Match / F1 Score
-- BLEU / ROUGE
+- Exact Match
+- F1 Score
+- BLEU
+- ROUGE
 - BERTScore
 
-### Performance Metrics
-- Embedding latency
-- Retrieval latency
-- LLM latency
-- Total latency
+### Performance
+- Latency (embedding, retrieval, LLM stages)
 
-### Cost Metrics
+### Cost
 - Token counting (prompt, completion, total)
 - Cost estimation per provider
-- Total experiment cost
 
 ---
 
@@ -169,15 +169,23 @@ print(report.summary)
 
 ### LLM Providers
 - OpenAI
-- Google Gemini
 - Anthropic
+- Google Gemini
 - Groq
 - OpenRouter
 - Ollama (local)
 
 ### Retriever Providers
 - Chroma
-- (More coming soon)
+- Qdrant
+- Pinecone
+- Weaviate
+- FAISS
+- pgvector
+- Elasticsearch
+- BM25
+- Memory
+- HTTP
 
 ---
 
@@ -242,29 +250,6 @@ uv run pytest tests/unit/test_exceptions.py
 ## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-## Roadmap
-
-### v1.0 (Current)
-- RAG evaluation
-- CLI + SDK interfaces
-- Plugin architecture
-- Multiple report formats
-
-### v2.0 (Planned)
-- AI Agent evaluation
-- Tool-call evaluation
-- Planning evaluation
-- Memory evaluation
-- Multi-agent evaluation
-
-### v3.0 (Future)
-- CI/CD integration
-- GitHub Action
-- Cloud synchronization
-- Hosted evaluation platform
 
 ---
 
