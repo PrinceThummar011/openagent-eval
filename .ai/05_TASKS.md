@@ -7,24 +7,6 @@
 
 ## TODO
 
-### Phase 6: Plugin System
-- [x] Design plugin registry
-- [x] Implement entry point discovery
-- [x] Create plugin loading mechanism
-- [x] Write plugin development guide
-- [x] Create example custom metric
-- [x] Write unit tests for plugin system
-
-### Phase 7: CLI Commands
-- [x] Implement `oaeval init`
-- [x] Implement `oaeval run` (now functional end-to-end)
-- [x] Implement `oaeval report`
-- [x] Implement `oaeval compare`
-- [x] Implement `oaeval list`
-- [x] Implement `oaeval doctor`
-- [x] Write CLI integration tests
-- [x] Wire evaluation pipeline (retriever → LLM → metrics) — was a stub
-
 ### Phase 8: Documentation
 - [ ] Create docs/01_vision.md
 - [ ] Create docs/02_problem_statement.md
@@ -42,6 +24,68 @@
 - [ ] Create ROADMAP.md
 - [ ] Create CHANGELOG.md
 
+### Phase 9: Corpus Health Auditor (THE DIFFERENTIATOR)
+- [ ] Design `BaseCorpusAnalyzer` ABC
+- [ ] Implement `CorpusIssue` and `AuditReport` models
+- [ ] Implement `ContradictionDetector` (LLM-as-Judge)
+- [ ] Implement `StalenessDetector` (timestamp analysis)
+- [ ] Implement `DuplicateDetector` (embedding similarity)
+- [ ] Implement `CoverageAnalyzer` (thematic gaps)
+- [ ] Implement `CorpusAuditor` orchestrator
+- [ ] Add `oaeval audit` CLI command
+- [ ] Add `CorpusConfig` to configuration models
+- [ ] Add `CorpusError` exception hierarchy
+- [ ] Write unit tests for all corpus analyzers
+- [ ] Write integration test for corpus audit pipeline
+
+### Phase 10: LLM-as-Judge Metrics
+- [ ] Implement `NLIJudge` using DeBERTa NLI model
+- [ ] Implement `ClaimExtractor` (split answers into atomic claims)
+- [ ] Implement `EvidenceFinder` (match claims to supporting context)
+- [ ] Upgrade `Faithfulness` metric to use NLI fallback
+- [ ] Upgrade `AnswerRelevancy` metric to use NLI fallback
+- [ ] Implement generic `LLMJudgeMetric` for custom criteria
+- [ ] Add `nli` optional dependency group to pyproject.toml
+- [ ] Write unit tests for NLI scoring
+- [ ] Write integration test for NLI-based metrics
+
+### Phase 11: Component Diagnosis
+- [ ] Define `FailureMode` enum (8 failure modes)
+- [ ] Implement `BlameAttribution` (retrieval vs generation vs chunking)
+- [ ] Implement `ChunkingQualityAnalyzer`
+- [ ] Implement `DiagnosisAnalyzer` orchestrator
+- [ ] Add `oaeval diagnose` CLI command
+- [ ] Add `DiagnosisError` exception hierarchy
+- [ ] Write unit tests for blame attribution
+- [ ] Write integration test for diagnosis pipeline
+
+### Phase 12: Synthetic Test Data — COMPLETE
+- [x] Implement `QuestionGenerator` (generate questions from documents)
+- [x] Implement `AdversarialTestCaseGenerator` (tricky edge cases)
+- [x] Implement `SyntheticDataGenerator` orchestrator
+- [x] Add `oaeval synth` CLI command
+- [x] Write unit tests for synthetic generation (49 tests)
+- [x] Write integration test for synthetic data pipeline (7 tests)
+
+### Phase 13: CI/CD Integration
+- [ ] Implement pytest plugin for RAG evaluation
+- [ ] Add threshold-based test gating
+- [ ] Add `oaeval test` CLI command
+- [ ] Write documentation for CI/CD integration
+- [ ] Add GitHub Actions workflow example
+
+### Phase 14: Hybrid CLI UI
+- [ ] 14.1 Add `pyfiglet` and `textual` to optional dependencies
+- [ ] 14.2 Create `openagent_eval/cli/banner.py` — ASCII art banner with Rich
+- [ ] 14.3 Update existing CLI commands to display banner
+- [ ] 14.4 Create `openagent_eval/ui/` module structure
+- [ ] 14.5 Implement Textual dashboard app (`app.py`)
+- [ ] 14.6 Create dashboard screens (main, audit, evaluate, diagnose)
+- [ ] 14.7 Add custom widgets (banner, results table, progress bars)
+- [ ] 14.8 Wire up `oaeval ui` command
+- [ ] 14.9 Add keyboard shortcuts and navigation
+- [ ] 14.10 Test and polish
+
 ---
 
 ## IN PROGRESS
@@ -51,6 +95,14 @@
 ---
 
 ## COMPLETED
+
+### Phase 12: Synthetic Test Data
+- [x] Implement `QuestionGenerator` (generate questions from documents)
+- [x] Implement `AdversarialTestCaseGenerator` (tricky edge cases)
+- [x] Implement `SyntheticDataGenerator` orchestrator
+- [x] Add `oaeval synth` CLI command
+- [x] Write unit tests for synthetic generation (49 tests)
+- [x] Write integration test for synthetic data pipeline (7 tests)
 
 ### Phase 6: Plugin System
 - [x] Design plugin registry
@@ -171,6 +223,18 @@ Phase 6 (Plugins) ← depends on Phases 2-5
 Phase 7 (CLI) ← depends on Phases 1-6
     ↓
 Phase 8 (Documentation) ← can run in parallel with Phase 7
+    ↓
+Phase 9 (Corpus Auditor) ← depends on Phase 1 (new module, independent)
+    ↓
+Phase 10 (LLM-as-Judge) ← depends on Phase 3 (metrics upgrade)
+    ↓
+Phase 11 (Diagnosis) ← depends on Phase 3 (uses metric results)
+    ↓
+Phase 12 (Synthetic Data) ← depends on Phase 5 (uses LLM providers)
+    ↓
+Phase 13 (CI/CD) ← depends on Phases 7, 9-12
+    ↓
+Phase 14 (Hybrid CLI UI) ← depends on Phase 1 (new module, independent)
 ```
 
 ---
@@ -181,12 +245,19 @@ Phase 8 (Documentation) ← can run in parallel with Phase 7
 - Phases 2-5 can be developed in parallel
 - Phase 6 requires interfaces from Phases 2-5
 - Phase 7 is complete - CLI works and the evaluation pipeline is now functional
+- Phase 8 can start early and run in parallel
+- **Phase 9-14 are NEW** — Production-grade RAG evaluation features + Hybrid CLI UI
+- Exception hierarchy is part of Phase 1 (required foundation)
+- Core module (engine, pipeline, executor, registry) is part of Phase 1
 - CORRECTION: the earlier "all phases complete / 517+ passing" claim was inaccurate;
   the core pipeline was a stub that produced empty results. Fixed 2026-07-10.
 - `oaeval run` now retrieves, generates, and scores; offline dry-run via mock providers.
-- Phase 8 can start early and run in parallel
-- Exception hierarchy is part of Phase 1 (required foundation)
-- Core module (engine, pipeline, executor, registry) is part of Phase 1
+- Phase 9 (Corpus Auditor) is the key differentiator — no existing tool does this
+- Phase 10 (LLM-as-Judge) fixes the faithfulness metric weakness
+- Phase 11 (Diagnosis) solves the "where did it fail" problem
+- Phase 12 (Synthetic Data) solves the "not enough test cases" problem
+- Phase 13 (CI/CD) enables regression gating in pipelines
+- Phase 14 (Hybrid CLI UI) adds beautiful Rich banner + optional Textual TUI dashboard
 
 ---
 
@@ -204,6 +275,9 @@ Phase 8 (Documentation) ← can run in parallel with Phase 7
 
 | Date | Change |
 |------|--------|
+| 2026-07-11 | **Phase 12 COMPLETE** — Synthetic Test Data generator implemented (56 tests) |
+| 2026-07-11 | Added Phase 14: Hybrid CLI UI (Rich banner + Textual TUI dashboard) |
+| 2026-07-11 | Added Phase 9-13: Corpus Auditor, LLM-as-Judge, Diagnosis, Synthetic Data, CI/CD |
 | 2026-07-10 | Pipeline stub fixed; mock providers added; recall_at_k/summary/hallucination bugs fixed; config aligned to registry; Phase 7 marked complete |
 | 2026-07-08 | Initial TASKS.md created |
 | 2026-07-08 | Updated with architecture decisions (D011-D016) |

@@ -9,11 +9,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Phase** | Phase 7 Complete |
-| **Status** | Evaluation pipeline implemented (retriever → LLM → metrics) |
-| **Last Updated** | 2026-07-10 |
-| **Next Action** | Real provider runs (Chroma/OpenAI) / Phase 8 Documentation |
-| **Current Branch** | feature/functional-pipeline |
+| **Phase** | Phase 12 Complete — Synthetic Test Data |
+| **Status** | v1.0 complete; production-grade features in progress |
+| **Last Updated** | 2026-07-11 |
+| **Next Action** | Phase 13 (CI/CD Integration) or another feature |
+| **Current Branch** | feature/synthetic-test-data |
 | **Remote** | https://github.com/OpenAgentHQ/openagent-eval.git |
 
 ---
@@ -38,6 +38,18 @@
 **Solution:** A local-first, developer-friendly evaluation framework that runs entirely from the command line.
 
 **Target:** Become the `pytest` of AI evaluation.
+
+**Production-Grade Vision:** Go beyond pipeline evaluation to validate the entire RAG stack — from corpus health through retrieval quality to generation faithfulness. Be the only tool that can tell you not just "your RAG scored 0.91" but "your RAG scored 0.91, but 23% of your corpus is stale and 3 documents contradict each other."
+
+## Key Research Findings (2026)
+
+| Finding | Source |
+|---------|--------|
+| 70-80% of enterprise RAG deployments never reach stable production | Gabriel Anhaia, April 2026 |
+| 90% of production failures are retrieval problems | Zartis, March 2026 |
+| 67% of "hallucinations" are actually extractive (wrong corpus data) | Renmin University + Tencent, 2025 |
+| 38.4% cite "data that fails to update" as primary failure cause | Sinequa, June 2026 |
+| Existing tools measure pipeline quality but never question the corpus | K-AI, June 2026 |
 
 ---
 
@@ -154,6 +166,52 @@ SDK (openagent_eval - Core Evaluation API)
 - [x] `DatasetItemModel.ground_truth_contexts` added for retrieval eval
 - [x] Integration test (mock end-to-end) + recall_at_k unit test added
 
+### Milestone 8: Documentation
+- [ ] Phase 8 documentation tasks (see TASKS.md)
+
+### Milestone 9: Corpus Health Auditor (NEW — THE DIFFERENTIATOR)
+- [ ] Design `BaseCorpusAnalyzer` ABC
+- [ ] Implement `CorpusIssue` and `AuditReport` models
+- [ ] Implement `ContradictionDetector` (LLM-as-Judge)
+- [ ] Implement `StalenessDetector` (timestamp analysis)
+- [ ] Implement `DuplicateDetector` (embedding similarity)
+- [ ] Implement `CoverageAnalyzer` (thematic gaps)
+- [ ] Implement `CorpusAuditor` orchestrator
+- [ ] Add `oaeval audit` CLI command
+- [ ] Add `CorpusConfig` to configuration models
+- [ ] Write unit tests for all corpus analyzers
+
+### Milestone 10: LLM-as-Judge Metrics (NEW)
+- [ ] Implement `NLIJudge` using DeBERTa NLI model
+- [ ] Implement `ClaimExtractor` (split answers into atomic claims)
+- [ ] Implement `EvidenceFinder` (match claims to supporting context)
+- [ ] Upgrade `Faithfulness` metric to use NLI fallback
+- [ ] Upgrade `AnswerRelevancy` metric to use NLI fallback
+- [ ] Implement generic `LLMJudgeMetric` for custom criteria
+- [ ] Write unit tests for NLI scoring
+
+### Milestone 11: Component Diagnosis (NEW)
+- [ ] Define `FailureMode` enum (8 failure modes)
+- [ ] Implement `BlameAttribution` (retrieval vs generation vs chunking)
+- [ ] Implement `ChunkingQualityAnalyzer`
+- [ ] Implement `DiagnosisAnalyzer` orchestrator
+- [ ] Add `oaeval diagnose` CLI command
+- [ ] Write unit tests for blame attribution
+
+### Milestone 12: Synthetic Test Data (NEW) — COMPLETE
+- [x] Implement `QuestionGenerator` (generate questions from documents)
+- [x] Implement `AdversarialTestCaseGenerator` (tricky edge cases)
+- [x] Implement `SyntheticDataGenerator` orchestrator
+- [x] Add `oaeval synth` CLI command
+- [x] Write unit tests for synthetic generation (49 tests)
+- [x] Write integration test for synthetic data pipeline (7 tests)
+
+### Milestone 13: CI/CD Integration (NEW)
+- [ ] Implement pytest plugin for RAG evaluation
+- [ ] Add threshold-based test gating
+- [ ] Add `oaeval test` CLI command
+- [ ] Write documentation for CI/CD integration
+
 ---
 
 ## Current Questions
@@ -218,11 +276,43 @@ chore/{description}        # Maintenance tasks
 - Phase 5 is complete - Provider Layer implemented (138 tests)
 - Phase 6 is complete - Plugin System implemented (27 tests)
 - Phase 7 is complete - Evaluation pipeline is now functional (was a stub)
+- Phase 8 is pending - Documentation
+- **Phase 9-13 are NEW** — Production-grade RAG evaluation features
+- **Phase 12 is COMPLETE** — Synthetic Test Data generator implemented (56 tests)
 - CORRECTION: earlier "517+ passing / all phases complete" status was inaccurate —
   the core pipeline did not actually evaluate. That gap is closed.
 - `oaeval run` now produces real answers, computed metrics, token usage, and latency.
 - Offline dry-run works via `llm.provider: mock` + `retriever.provider: mock`.
-- Ready to proceed with Phase 8 (Documentation) or real provider runs.
+- Ready to proceed with Phase 8 (Documentation), Phase 9 (Corpus Auditor), or Phase 13 (CI/CD).
+
+## Competitive Advantage
+
+**What makes OpenAgent Eval unique vs RAGAS, DeepEval, TruLens:**
+
+1. **Corpus Health Auditor** — No existing tool validates the knowledge base itself
+2. **Blame Attribution** — No existing tool tells you WHERE the failure occurred
+3. **NLI-based Scoring** — Word overlap is insufficient for production use
+4. **Synthetic Test Data** — Bootstrap evaluation from your corpus
+5. **CLI-first, Local-first** — No cloud services, no dashboards, no authentication
+6. **Hybrid CLI UI** — Beautiful Rich output + optional Textual TUI dashboard
+
+---
+
+## CLI UI Research Findings
+
+**Key technologies discovered:**
+
+| Technology | Purpose | Integration |
+|------------|---------|-------------|
+| pyfiglet | ASCII art banners | CLI banner generation |
+| Rich Layout | Rows/columns, Panels, Tables | Standard CLI output |
+| Textual | Full TUI framework | `oaeval ui` command |
+| rich.live.Live | Real-time dashboards | Live updating displays |
+
+**Architecture decision:**
+- Hybrid approach: Rich for all commands, Textual for `oaeval ui`
+- Zero breaking changes to existing CLI
+- Opt-in interactivity for power users
 
 ---
 
@@ -230,6 +320,13 @@ chore/{description}        # Maintenance tasks
 
 | Date | Change |
 |------|--------|
+| 2026-07-11 | **Phase 12 COMPLETE** — Synthetic Test Data generator implemented (56 tests) |
+| 2026-07-11 | Added Phase 14: Hybrid CLI UI (Rich banner + Textual TUI dashboard) |
+| 2026-07-11 | Added CLI UI research findings to context |
+| 2026-07-11 | Added Phase 9-13 (production-grade RAG eval): Corpus Auditor, LLM-as-Judge, Diagnosis, Synthetic Data, CI/CD |
+| 2026-07-11 | Updated 00_PROJECT.md with production-grade vision and feature matrix |
+| 2026-07-11 | Updated 01_ARCHITECTURE.md with new modules (corpus/, diagnosis/, synthesis/) |
+| 2026-07-11 | Updated 03_CONTEXT.md with research findings and competitive advantage |
 | 2026-07-10 | Pipeline stub fixed: retriever→LLM→metrics wired; mock providers added; recall_at_k/summary/hallucination bugs fixed; config aligned |
 | 2026-07-08 | Initial CONTEXT.md created |
 | 2026-07-08 | Updated Milestone 0 completion status |

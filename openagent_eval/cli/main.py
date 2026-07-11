@@ -15,6 +15,7 @@ from openagent_eval.cli.commands.init import init_command
 from openagent_eval.cli.commands.list_evaluations import list_command
 from openagent_eval.cli.commands.report import report_command
 from openagent_eval.cli.commands.run import run_command
+from openagent_eval.cli.commands.synth import synth_command
 from openagent_eval.cli.commands.validate import validate_command
 from openagent_eval.cli.commands.audit import audit_command
 from openagent_eval.cli.context import CLIContext, set_context
@@ -116,6 +117,7 @@ app.command(name="validate")(validate_command)
 app.command(name="delete")(delete_command)
 app.command(name="diagnose")(diagnose_command)
 app.command(name="audit")(audit_command)
+app.command(name="synth")(synth_command)
 
 
 # Shell completion command
