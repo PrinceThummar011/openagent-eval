@@ -37,15 +37,14 @@ class BannerWidget(Widget):
     """
 
     def compose(self) -> ComposeResult:
-        ver = _get_version()
         yield Static(
-            f"[bold cyan]    ___   ___    [/bold cyan]\n"
-            f"[bold cyan]   / __| / _ \\   [/bold cyan]\n"
-            f"[bold bright_cyan]  | (__ | (_) |  [/bold bright_cyan]\n"
-            f"[bold bright_blue]   \\___| \\___/   [/bold bright_blue]  [dim]v{ver}[/dim]\n"
-            f"\n"
-            f"[italic bright_blue]   RAG Evaluation Framework[/italic bright_blue]\n"
-            f"[dim]   Open-source CLI for evaluating RAG systems[/dim]"
+            "[bold cyan]  ___   ___  ___    ___  [/bold cyan]\n"
+            "[bold cyan] / __| / __|/ _ \\  / __| [/bold cyan]\n"
+            "[bold bright_cyan]| (__  \\__ \\ (_) || (__  [/bold bright_cyan]\n"
+            "[bold bright_blue] \\___| |___/\\___/  \\___| [/bold bright_blue]\n"
+            "\n"
+            "[italic bright_blue]   RAG Evaluation Framework[/italic bright_blue]\n"
+            "[dim]   Open-source CLI for evaluating RAG systems[/dim]"
         )
 
 

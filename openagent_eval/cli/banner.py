@@ -30,11 +30,11 @@ def _generate_ascii_art(text: str = "oaeval") -> str:
     except ImportError:
         # Fallback when pyfiglet is not installed
         return (
-            " ___   ___  \n"
-            "/ __| / _ \\ \n"
-            "| (__ | (_) |\n"
-            " \\___| \\___/ \n"
-            "              "
+            " ___   ___  ___    ___  \n"
+            "/ __| / __|/ _ \\  / __| \n"
+            "| (__  \\__ \\ (_) || (__  \n"
+            " \\___| |___/\\___/  \\___| \n"
+            "                          "
         )
 
 
@@ -50,7 +50,7 @@ def _get_version() -> str:
         return "0.3.0"
 
 
-def create_banner(console: Console | None = None, show_version: bool = True) -> None:
+def create_banner(console: Console | None = None, show_version: bool = False) -> None:
     """Display the OpenAgent Eval ASCII art banner with gradient styling.
 
     Args:
@@ -61,7 +61,6 @@ def create_banner(console: Console | None = None, show_version: bool = True) -> 
         console = Console()
 
     ascii_art = _generate_ascii_art("oaeval")
-    ver = _get_version()
 
     # Create gradient-styled ASCII art
     lines = ascii_art.split("\n")
@@ -77,9 +76,7 @@ def create_banner(console: Console | None = None, show_version: bool = True) -> 
         else:
             gradient_art.append("\n")
 
-    # Add version and tagline
-    if show_version:
-        gradient_art.append(f"\n     v{ver}", style="dim white")
+    # Add tagline
     gradient_art.append("\n", style="default")
     gradient_art.append("  RAG Evaluation Framework", style="italic bright_blue")
     gradient_art.append("\n  ", style="default")
@@ -109,15 +106,12 @@ def create_mini_banner(console: Console | None = None) -> None:
     if console is None:
         console = Console()
 
-    ver = _get_version()
-
     # Create a styled mini banner
     banner = Table(show_header=False, show_edge=False, box=None, padding=(0, 1))
     banner.add_column("name", style="bold cyan")
-    banner.add_column("version", style="dim white")
     banner.add_column("tagline", style="italic bright_blue")
 
-    banner.add_row("oaeval", f"v{ver}", "RAG Evaluation Framework")
+    banner.add_row("oaeval", "RAG Evaluation Framework")
 
     console.print(banner)
     console.print()
@@ -132,12 +126,9 @@ def create_rich_banner(console: Console | None = None) -> None:
     if console is None:
         console = Console()
 
-    ver = _get_version()
-
     # Create the main banner text
     banner_text = Text()
     banner_text.append("  oaeval  ", style="bold cyan")
-    banner_text.append(f"v{ver}", style="dim white")
     banner_text.append("  -  ", style="dim")
     banner_text.append("RAG Evaluation Framework", style="italic bright_blue")
 
@@ -161,7 +152,7 @@ def create_rich_banner(console: Console | None = None) -> None:
         padding=(1, 2),
         expand=False,
         title="[bold bright_blue]OpenAgent Eval[/bold bright_blue]",
-        subtitle="[dim]v1.0 - Production-Grade RAG Evaluation[/dim]",
+        subtitle="[dim]Production-Grade RAG Evaluation[/dim]",
     )
 
     console.print()
