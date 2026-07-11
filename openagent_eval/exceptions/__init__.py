@@ -36,6 +36,7 @@ from openagent_eval.exceptions.provider import (
     ProviderExecutionError,
     ProviderNotFoundError,
 )
+from openagent_eval.exceptions.synthesis import SynthesisError, SynthesisExecutionError
 
 __all__ = [
     "OpenAgentEvalError",
@@ -65,4 +66,6 @@ __all__ = [
     "DiagnosisError",
     "DiagnosisExecutionError",
     "BlameAttributionError",
+    "SynthesisError",
+    "SynthesisExecutionError",
 ]
