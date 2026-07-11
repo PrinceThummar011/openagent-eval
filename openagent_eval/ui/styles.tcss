@@ -467,6 +467,23 @@ MessageList {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   Rich Command Input
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+RichCommandInput {
+    height: 3;
+    dock: bottom;
+    padding: 0 1;
+    background: $surface;
+    border-top: solid $primary;
+}
+
+RichCommandInput Input {
+    height: 100%;
+    background: transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    Color Overrides (Dark Theme Support)
    ═══════════════════════════════════════════════════════════════════════════════ */
 
@@ -500,6 +517,10 @@ MessageList {
     }
 
     MessageList {
+        background: $surface-darken-1;
+    }
+
+    RichCommandInput {
         background: $surface-darken-1;
     }
 
@@ -546,6 +567,10 @@ MessageList {
     }
 
     MessageList {
+        background: $surface-lighten-1;
+    }
+
+    RichCommandInput {
         background: $surface-lighten-1;
     }
 

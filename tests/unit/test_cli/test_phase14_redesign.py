@@ -20,6 +20,11 @@ from openagent_eval.ui.streaming import (
     STATE_TRANSITIONS,
 )
 from openagent_eval.ui.components.spinner import SpinnerWidget, ROTATING_TIPS
+from openagent_eval.ui.components.command_input import (
+    Command,
+    CommandSuggester,
+    RichCommandInput,
+)
 from openagent_eval.ui.components.footer import StatusFooter
 from openagent_eval.ui.components.message_list import Message, MessageList, MessageRole
 from openagent_eval.ui.tools.eval import EvalResultPanel
@@ -467,3 +472,222 @@ class TestMessageList:
         ml = MessageList()
         ml.set_auto_scroll(False)
         assert ml._auto_scroll is False
+
+
+class TestCommand:
+    """Tests for the Command dataclass."""
+
+    def test_command_creation(self):
+        """Test creating a command."""
+        cmd = Command(name="eval", description="Run evaluation")
+        assert cmd.name == "eval"
+        assert cmd.description == "Run evaluation"
+        assert cmd.aliases == []
+        assert cmd.args == ""
+
+    def test_command_with_aliases(self):
+        """Test creating a command with aliases."""
+        cmd = Command(
+            name="eval",
+            description="Run evaluation",
+            aliases=["e", "run"],
+            args="--config FILE"
+        )
+        assert cmd.aliases == ["e", "run"]
+        assert cmd.args == "--config FILE"
+
+
+class TestCommandSuggester:
+    """Tests for the CommandSuggester."""
+
+    def test_suggester_creation(self):
+        """Test creating a suggester."""
+        commands = [
+            Command(name="eval", description="Run evaluation"),
+            Command(name="audit", description="Check config"),
+        ]
+        suggester = CommandSuggester(commands)
+        assert suggester._commands == commands
+
+    def test_fuzzy_match_prefix(self):
+        """Test fuzzy matching with prefix."""
+        commands = [
+            Command(name="eval", description="Run evaluation"),
+            Command(name="audit", description="Check config"),
+        ]
+        suggester = CommandSuggester(commands)
+        matches = suggester._fuzzy_match("ev")
+        assert len(matches) == 1
+        assert matches[0].name == "eval"
+
+    def test_fuzzy_match_alias(self):
+        """Test fuzzy matching with alias."""
+        commands = [
+            Command(name="eval", description="Run evaluation", aliases=["e"]),
+            Command(name="audit", description="Check config", aliases=["a"]),
+        ]
+        suggester = CommandSuggester(commands)
+        matches = suggester._fuzzy_match("e")
+        assert len(matches) >= 1
+        assert any(cmd.name == "eval" for cmd in matches)
+
+    def test_fuzzy_match_substring(self):
+        """Test fuzzy matching with substring."""
+        commands = [
+            Command(name="eval", description="Run evaluation"),
+            Command(name="evaluate", description="Run eval"),
+        ]
+        suggester = CommandSuggester(commands)
+        matches = suggester._fuzzy_match("alu")
+        assert len(matches) == 1
+        assert matches[0].name == "evaluate"
+
+    def test_get_command_by_name(self):
+        """Test getting command by name."""
+        commands = [
+            Command(name="eval", description="Run evaluation"),
+            Command(name="audit", description="Check config"),
+        ]
+        suggester = CommandSuggester(commands)
+        cmd = suggester.get_command("eval")
+        assert cmd is not None
+        assert cmd.name == "eval"
+
+    def test_get_command_by_alias(self):
+        """Test getting command by alias."""
+        commands = [
+            Command(name="eval", description="Run evaluation", aliases=["e"]),
+        ]
+        suggester = CommandSuggester(commands)
+        cmd = suggester.get_command("e")
+        assert cmd is not None
+        assert cmd.name == "eval"
+
+    def test_get_command_not_found(self):
+        """Test getting command that doesn't exist."""
+        commands = [
+            Command(name="eval", description="Run evaluation"),
+        ]
+        suggester = CommandSuggester(commands)
+        cmd = suggester.get_command("nonexistent")
+        assert cmd is None
+
+    def test_update_commands(self):
+        """Test updating commands."""
+        commands = [
+            Command(name="eval", description="Run evaluation"),
+        ]
+        suggester = CommandSuggester(commands)
+        new_commands = [
+            Command(name="audit", description="Check config"),
+        ]
+        suggester.update_commands(new_commands)
+        assert suggester._commands == new_commands
+
+
+class TestRichCommandInput:
+    """Tests for the RichCommandInput widget."""
+
+    def test_command_input_exists(self):
+        """Test that RichCommandInput can be imported."""
+        assert RichCommandInput is not None
+
+    def test_command_input_creation(self):
+        """Test creating a RichCommandInput."""
+        commands = [
+            Command(name="eval", description="Run evaluation"),
+        ]
+        input_widget = RichCommandInput(commands=commands)
+        assert input_widget.commands == commands
+
+    def test_command_input_default_placeholder(self):
+        """Test default placeholder."""
+        input_widget = RichCommandInput()
+        assert input_widget.placeholder == "Type a command..."
+
+    def test_add_to_history(self):
+        """Test adding to history."""
+        input_widget = RichCommandInput()
+        input_widget.add_to_history("eval --config test.yaml")
+        assert len(input_widget.history) == 1
+        assert input_widget.history[0] == "eval --config test.yaml"
+
+    def test_add_to_history_no_duplicates(self):
+        """Test that history doesn't contain duplicates."""
+        input_widget = RichCommandInput()
+        input_widget.add_to_history("eval")
+        input_widget.add_to_history("eval")
+        assert len(input_widget.history) == 1
+
+    def test_add_to_history_no_empty(self):
+        """Test that empty strings aren't added to history."""
+        input_widget = RichCommandInput()
+        input_widget.add_to_history("")
+        input_widget.add_to_history("   ")
+        assert len(input_widget.history) == 0
+
+    def test_clear_history(self):
+        """Test clearing history."""
+        input_widget = RichCommandInput()
+        input_widget.add_to_history("eval")
+        input_widget.clear_history()
+        assert len(input_widget.history) == 0
+
+    def test_max_history(self):
+        """Test max history limit."""
+        input_widget = RichCommandInput(max_history=3)
+        for i in range(5):
+            input_widget.add_to_history(f"cmd{i}")
+        assert len(input_widget.history) == 3
+        assert input_widget.history[0] == "cmd2"
+
+    def test_vim_mode_default_off(self):
+        """Test vim mode is off by default."""
+        input_widget = RichCommandInput()
+        assert input_widget.vim_mode is False
+
+    def test_toggle_vim_mode(self):
+        """Test toggling vim mode."""
+        input_widget = RichCommandInput()
+        input_widget.toggle_vim_mode()
+        assert input_widget.vim_mode is True
+        input_widget.toggle_vim_mode()
+        assert input_widget.vim_mode is False
+
+    def test_set_commands(self):
+        """Test setting commands."""
+        input_widget = RichCommandInput()
+        commands = [
+            Command(name="eval", description="Run evaluation"),
+        ]
+        input_widget.set_commands(commands)
+        assert input_widget.commands == commands
+
+    def test_add_command(self):
+        """Test adding a command."""
+        input_widget = RichCommandInput()
+        cmd = Command(name="eval", description="Run evaluation")
+        input_widget.add_command(cmd)
+        assert len(input_widget.commands) == 1
+        assert input_widget.commands[0] == cmd
+
+    def test_get_command_by_name(self):
+        """Test getting command by name."""
+        commands = [
+            Command(name="eval", description="Run evaluation"),
+        ]
+        input_widget = RichCommandInput(commands=commands)
+        cmd = input_widget.get_command_by_name("eval")
+        assert cmd is not None
+        assert cmd.name == "eval"
+
+    def test_get_suggestions(self):
+        """Test getting suggestions."""
+        commands = [
+            Command(name="eval", description="Run evaluation"),
+            Command(name="audit", description="Check config"),
+        ]
+        input_widget = RichCommandInput(commands=commands)
+        suggestions = input_widget.get_suggestions("ev")
+        assert len(suggestions) == 1
+        assert suggestions[0].name == "eval"
