@@ -26,7 +26,7 @@ def _generate_ascii_art(text: str = "oaeval") -> str:
 
 
 def create_banner(console: Console | None = None, show_version: bool = False) -> None:
-    """Display the OpenAgent Eval ASCII art banner with gradient styling.
+    """Display the OpenAgent Eval ASCII art banner.
 
     Args:
         console: Rich Console instance. Creates one if not provided.
@@ -37,31 +37,27 @@ def create_banner(console: Console | None = None, show_version: bool = False) ->
 
     ascii_art = _generate_ascii_art()
 
-    # Create gradient-styled ASCII art
+    # Create styled ASCII art
     lines = ascii_art.split("\n")
-    gradient_art = Text()
+    styled_art = Text()
 
-    # Color gradient from cyan to blue
-    colors = ["bold cyan", "bold cyan", "bold bright_cyan", "bold bright_blue", "bold bright_blue", "bold blue"]
-
-    for i, line in enumerate(lines):
-        if line.strip():  # Only color non-empty lines
-            color = colors[i % len(colors)]
-            gradient_art.append(f"{line}\n", style=color)
+    for line in lines:
+        if line.strip():
+            styled_art.append(f"{line}\n", style="bold")
         else:
-            gradient_art.append("\n")
+            styled_art.append("\n")
 
     # Add tagline
-    gradient_art.append("\n", style="default")
-    gradient_art.append("      OpenAgent Eval • Production-Ready RAG Evaluation", style="italic bright_blue")
+    styled_art.append("\n", style="default")
+    styled_art.append("      OpenAgent Eval • Production-Ready RAG Evaluation", style="italic")
 
-    # Create a beautiful panel
+    # Create a panel
     panel = Panel(
-        Align.center(gradient_art),
-        border_style="bright_blue",
+        Align.center(styled_art),
+        border_style="bold",
         padding=(1, 2),
         expand=False,
-        title="[bold bright_blue]oaeval[/bold bright_blue]",
+        title="[bold]oaeval[/bold]",
         subtitle="[dim]Press F1 for help[/dim]",
     )
 
@@ -81,8 +77,8 @@ def create_mini_banner(console: Console | None = None) -> None:
 
     # Create a styled mini banner
     banner = Table(show_header=False, show_edge=False, box=None, padding=(0, 1))
-    banner.add_column("name", style="bold cyan")
-    banner.add_column("tagline", style="italic bright_blue")
+    banner.add_column("name", style="bold")
+    banner.add_column("tagline", style="italic")
 
     banner.add_row("OAEVAL", "Production-Ready RAG Evaluation")
 
@@ -101,17 +97,17 @@ def create_rich_banner(console: Console | None = None) -> None:
 
     # Create the main banner text
     banner_text = Text()
-    banner_text.append("  OAEVAL  ", style="bold cyan")
+    banner_text.append("  OAEVAL  ", style="bold")
     banner_text.append("  •  ", style="dim")
-    banner_text.append("Production-Ready RAG Evaluation", style="italic bright_blue")
+    banner_text.append("Production-Ready RAG Evaluation", style="italic")
 
     # Create feature highlights as text
     features_text = Text()
     features_text.append("  Features:\n", style="bold")
-    features_text.append("  [bright_blue]>[/bright_blue] Corpus Health Auditor\n", style="dim")
-    features_text.append("  [bright_blue]>[/bright_blue] NLI-based Faithfulness Scoring\n", style="dim")
-    features_text.append("  [bright_blue]>[/bright_blue] Component Blame Attribution\n", style="dim")
-    features_text.append("  [bright_blue]>[/bright_blue] Synthetic Test Data Generation", style="dim")
+    features_text.append("  > Corpus Health Auditor\n", style="dim")
+    features_text.append("  > NLI-based Faithfulness Scoring\n", style="dim")
+    features_text.append("  > Component Blame Attribution\n", style="dim")
+    features_text.append("  > Synthetic Test Data Generation", style="dim")
 
     # Combine into panel
     content = Text()
@@ -121,10 +117,10 @@ def create_rich_banner(console: Console | None = None) -> None:
 
     panel = Panel(
         content,
-        border_style="bright_blue",
+        border_style="bold",
         padding=(1, 2),
         expand=False,
-        title="[bold bright_blue]OpenAgent Eval[/bold bright_blue]",
+        title="[bold]OpenAgent Eval[/bold]",
         subtitle="[dim]Production-Ready RAG Evaluation[/dim]",
     )
 

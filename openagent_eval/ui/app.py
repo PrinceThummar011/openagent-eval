@@ -202,7 +202,7 @@ def run_ui(config_path: str | None = None) -> None:
 
         console = Console(stderr=True)
         console.print(
-            "[red]Error:[/red] Textual is required for the TUI dashboard.\n"
+            "[bold]Error:[/bold] Textual is required for the TUI dashboard.\n"
             "Install it with: [bold]pip install openagent-eval[ui][/bold]"
         )
         raise SystemExit(1)

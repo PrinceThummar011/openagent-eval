@@ -106,9 +106,9 @@ class MainDashboard(Screen):
 
         # Populate recent commands table
         table_widget = self.query_one("#recent-table", ResultsTableWidget)
-        table_widget.add_row("run", "[green]Idle[/green]", "-", "-")
-        table_widget.add_row("audit", "[green]Idle[/green]", "-", "-")
-        table_widget.add_row("diagnose", "[green]Idle[/green]", "-", "-")
+        table_widget.add_row("run", "[bold]Idle[/bold]", "-", "-")
+        table_widget.add_row("audit", "[bold]Idle[/bold]", "-", "-")
+        table_widget.add_row("diagnose", "[bold]Idle[/bold]", "-", "-")
 
     def action_run_evaluation(self) -> None:
         """Switch to evaluation screen."""
@@ -183,17 +183,17 @@ class EvaluateScreen(Screen):
 
         # Screen header
         with Vertical(id="screen-header"):
-            yield Static("[bold bright_blue]Evaluation Runner[/bold bright_blue]")
+            yield Static("[bold]Evaluation Runner[/bold]")
             yield Rule()
 
         # Configuration panel
         with Vertical(id="config-section"):
-            yield Static("[bold bright_blue]Configuration[/bold bright_blue]")
+            yield Static("[bold]Configuration[/bold]")
             yield Rule()
             with Horizontal(classes="config-grid"):
-                yield Label("[dim]Config:[/dim] [bright_white]config.yaml[/bright_white]", classes="config-item")
-                yield Label("[dim]Metrics:[/dim] [bright_white]faithfulness, relevancy[/bright_white]", classes="config-item")
-                yield Label("[dim]Provider:[/dim] [bright_white]openai[/bright_white]", classes="config-item")
+                yield Label("[dim]Config:[/dim] [bold]config.yaml[/bold]", classes="config-item")
+                yield Label("[dim]Metrics:[/dim] [bold]faithfulness, relevancy[/bold]", classes="config-item")
+                yield Label("[dim]Provider:[/dim] [bold]openai[/bold]", classes="config-item")
 
         # Results section
         with Vertical(id="results-section"):
@@ -275,16 +275,16 @@ class AuditScreen(Screen):
 
         # Screen header
         with Vertical(id="screen-header"):
-            yield Static("[bold bright_blue]Corpus Health Audit[/bold bright_blue]")
+            yield Static("[bold]Corpus Health Audit[/bold]")
             yield Rule()
 
         # Configuration panel
         with Vertical(id="audit-config"):
-            yield Static("[bold bright_blue]Audit Configuration[/bold bright_blue]")
+            yield Static("[bold]Audit Configuration[/bold]")
             yield Rule()
             with Horizontal(classes="config-grid"):
-                yield Label("[dim]Corpus:[/dim] [bright_white]./knowledge_base/[/bright_white]", classes="config-item")
-                yield Label("[dim]Checks:[/dim] [bright_white]contradiction, staleness, duplicate, coverage[/bright_white]", classes="config-item")
+                yield Label("[dim]Corpus:[/dim] [bold]./knowledge_base/[/bold]", classes="config-item")
+                yield Label("[dim]Checks:[/dim] [bold]contradiction, staleness, duplicate, coverage[/bold]", classes="config-item")
 
         # Results section
         with Vertical(id="audit-results"):
@@ -311,10 +311,10 @@ class AuditScreen(Screen):
         """Trigger corpus audit."""
         table = self.query_one("#audit-table", ResultsTableWidget)
         table.clear_rows()
-        table.add_row("contradiction", "0", "[green]None[/green]", "[green]OK[/green]")
-        table.add_row("staleness", "0", "[green]None[/green]", "[green]OK[/green]")
-        table.add_row("duplicate", "0", "[green]None[/green]", "[green]OK[/green]")
-        table.add_row("coverage_gap", "0", "[green]None[/green]", "[green]OK[/green]")
+        table.add_row("contradiction", "0", "[bold]None[/bold]", "[bold]OK[/bold]")
+        table.add_row("staleness", "0", "[bold]None[/bold]", "[bold]OK[/bold]")
+        table.add_row("duplicate", "0", "[bold]None[/bold]", "[bold]OK[/bold]")
+        table.add_row("coverage_gap", "0", "[bold]None[/bold]", "[bold]OK[/bold]")
 
 
 class DiagnoseScreen(Screen):
@@ -373,17 +373,17 @@ class DiagnoseScreen(Screen):
 
         # Screen header
         with Vertical(id="screen-header"):
-            yield Static("[bold bright_blue]Component Diagnosis[/bold bright_blue]")
+            yield Static("[bold]Component Diagnosis[/bold]")
             yield Rule()
 
         # Configuration panel
         with Vertical(id="diag-config"):
-            yield Static("[bold bright_blue]Diagnosis Configuration[/bold bright_blue]")
+            yield Static("[bold]Diagnosis Configuration[/bold]")
             yield Rule()
             with Horizontal(classes="config-grid"):
-                yield Label("[dim]Report:[/dim] [bright_white]reports/latest.json[/bright_white]", classes="config-item")
-                yield Label("[dim]Threshold:[/dim] [bright_white]0.5[/bright_white]", classes="config-item")
-                yield Label("[dim]Mode:[/dim] [bright_white]blame_attribution[/bright_white]", classes="config-item")
+                yield Label("[dim]Report:[/dim] [bold]reports/latest.json[/bold]", classes="config-item")
+                yield Label("[dim]Threshold:[/dim] [bold]0.5[/bold]", classes="config-item")
+                yield Label("[dim]Mode:[/dim] [bold]blame_attribution[/bold]", classes="config-item")
 
         # Results section
         with Vertical(id="diag-results"):
@@ -454,34 +454,34 @@ class HelpScreen(Screen):
         yield Header()
 
         with Vertical(id="help-content"):
-            yield Static("[bold bright_blue]OpenAgent Eval TUI - Keyboard Shortcuts[/bold bright_blue]", classes="section-title")
+            yield Static("[bold]OpenAgent Eval TUI - Keyboard Shortcuts[/bold]", classes="section-title")
             yield Rule()
 
-            yield Static("[bold bright_blue]Global[/bold bright_blue]", classes="section-title")
-            yield Label("  [bold cyan]q[/bold cyan] / [bold cyan]ctrl+c[/bold cyan]    Quit the application", classes="shortcut-row")
-            yield Label("  [bold cyan]escape[/bold cyan]         Go back / Close screen", classes="shortcut-row")
-            yield Label("  [bold cyan]h[/bold cyan]              Show this help", classes="shortcut-row")
+            yield Static("[bold]Global[/bold]", classes="section-title")
+            yield Label("  [bold]q[/bold] / [bold]ctrl+c[/bold]    Quit the application", classes="shortcut-row")
+            yield Label("  [bold]escape[/bold]         Go back / Close screen", classes="shortcut-row")
+            yield Label("  [bold]h[/bold]              Show this help", classes="shortcut-row")
             yield Rule(classes="divider")
 
-            yield Static("[bold bright_blue]Main Dashboard[/bold bright_blue]", classes="section-title")
-            yield Label("  [bold cyan]1[/bold cyan]              Run Evaluation", classes="shortcut-row")
-            yield Label("  [bold cyan]2[/bold cyan]              Audit Corpus", classes="shortcut-row")
-            yield Label("  [bold cyan]3[/bold cyan]              Diagnose", classes="shortcut-row")
+            yield Static("[bold]Main Dashboard[/bold]", classes="section-title")
+            yield Label("  [bold]1[/bold]              Run Evaluation", classes="shortcut-row")
+            yield Label("  [bold]2[/bold]              Audit Corpus", classes="shortcut-row")
+            yield Label("  [bold]3[/bold]              Diagnose", classes="shortcut-row")
             yield Rule(classes="divider")
 
-            yield Static("[bold bright_blue]Evaluate Screen[/bold bright_blue]", classes="section-title")
-            yield Label("  [bold cyan]r[/bold cyan]              Run evaluation", classes="shortcut-row")
-            yield Label("  [bold cyan]escape[/bold cyan]         Back to dashboard", classes="shortcut-row")
+            yield Static("[bold]Evaluate Screen[/bold]", classes="section-title")
+            yield Label("  [bold]r[/bold]              Run evaluation", classes="shortcut-row")
+            yield Label("  [bold]escape[/bold]         Back to dashboard", classes="shortcut-row")
             yield Rule(classes="divider")
 
-            yield Static("[bold bright_blue]Audit Screen[/bold bright_blue]", classes="section-title")
-            yield Label("  [bold cyan]r[/bold cyan]              Run audit", classes="shortcut-row")
-            yield Label("  [bold cyan]escape[/bold cyan]         Back to dashboard", classes="shortcut-row")
+            yield Static("[bold]Audit Screen[/bold]", classes="section-title")
+            yield Label("  [bold]r[/bold]              Run audit", classes="shortcut-row")
+            yield Label("  [bold]escape[/bold]         Back to dashboard", classes="shortcut-row")
             yield Rule(classes="divider")
 
-            yield Static("[bold bright_blue]Diagnose Screen[/bold bright_blue]", classes="section-title")
-            yield Label("  [bold cyan]r[/bold cyan]              Run diagnosis", classes="shortcut-row")
-            yield Label("  [bold cyan]escape[/bold cyan]         Back to dashboard", classes="shortcut-row")
+            yield Static("[bold]Diagnose Screen[/bold]", classes="section-title")
+            yield Label("  [bold]r[/bold]              Run diagnosis", classes="shortcut-row")
+            yield Label("  [bold]escape[/bold]         Back to dashboard", classes="shortcut-row")
             yield Rule(classes="divider")
 
             yield Label("[dim]Press escape or q to close this help[/dim]")

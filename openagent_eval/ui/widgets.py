@@ -28,14 +28,14 @@ class BannerWidget(Widget):
 
     def compose(self) -> ComposeResult:
         yield Static(
-            "[bold cyan]██████╗  █████╗ ███████╗██╗   ██╗ █████╗ ██╗[/bold cyan]\n"
-            "[bold cyan]██╔═══██╗██╔══██╗██╔════╝██║   ██║██╔══██╗██║[/bold cyan]\n"
-            "[bold cyan]██║   ██║███████║█████╗  ██║   ██║███████║██║[/bold cyan]\n"
-            "[bold bright_cyan]██║   ██║██╔══██║██╔══╝  ╚██╗ ██╔╝██╔══██║██║[/bold bright_cyan]\n"
-            "[bold bright_blue]╚██████╔╝██║  ██║███████╗ ╚████╔╝ ██║  ██║███████╗[/bold bright_blue]\n"
-            "[bold bright_blue] ╚═════╝ ╚═╝  ╚═╝╚══════╝  ╚═══╝  ╚═╝  ╚═╝╚══════╝[/bold bright_blue]\n"
+            "[bold]██████╗  █████╗ ███████╗██╗   ██╗ █████╗ ██╗[/bold]\n"
+            "[bold]██╔═══██╗██╔══██╗██╔════╝██║   ██║██╔══██╗██║[/bold]\n"
+            "[bold]██║   ██║███████║█████╗  ██║   ██║███████║██║[/bold]\n"
+            "[bold]██║   ██║██╔══██║██╔══╝  ╚██╗ ██╔╝██╔══██║██║[/bold]\n"
+            "[bold]╚██████╔╝██║  ██║███████╗ ╚████╔╝ ██║  ██║███████╗[/bold]\n"
+            "[bold] ╚═════╝ ╚═╝  ╚═╝╚══════╝  ╚═══╝  ╚═╝  ╚═╝╚══════╝[/bold]\n"
             "\n"
-            "[italic bright_blue]      OpenAgent Eval • Production-Ready RAG Evaluation[/italic bright_blue]"
+            "[italic]      OpenAgent Eval • Production-Ready RAG Evaluation[/italic]"
         )
 
 
@@ -55,27 +55,27 @@ class StatusWidget(Widget):
     """
 
     status_text = reactive("Ready")
-    status_icon = reactive("[green]>[/green]")
+    status_icon = reactive("[bold]>[/bold]")
 
     def compose(self) -> ComposeResult:
         yield Label(f"{self.status_icon} [bold]Status:[/bold] {self.status_text}")
 
-    def set_status(self, status: str, icon: str = "[green]>[/green]") -> None:
+    def set_status(self, status: str, icon: str = "[bold]>[/bold]") -> None:
         """Update the status text."""
         self.status_text = status
         self.status_icon = icon
 
     def set_running(self, status: str) -> None:
         """Set status to running state."""
-        self.set_status(status, "[yellow]>[/yellow]")
+        self.set_status(status, "[dim]>[/dim]")
 
     def set_complete(self, status: str) -> None:
         """Set status to completed state."""
-        self.set_status(status, "[green]>[/green]")
+        self.set_status(status, "[bold]>[/bold]")
 
     def set_error(self, status: str) -> None:
         """Set status to error state."""
-        self.set_status(status, "[red]>[/red]")
+        self.set_status(status, "[bold]>[/bold]")
 
 
 class MetricsSummaryWidget(Widget):
@@ -106,31 +106,14 @@ class MetricsSummaryWidget(Widget):
         self.metrics = metrics or {}
 
     def compose(self) -> ComposeResult:
-        yield Static(f"[bold bright_blue]{self._title}[/bold bright_blue]", classes="title")
+        yield Static(f"[bold]{self._title}[/bold]", classes="title")
         yield Rule()
         if self.metrics:
             for name, score in self.metrics.items():
-                # Color based on score quality
-                if score >= 0.9:
-                    color = "bold green"
-                    indicator = ">"
-                elif score >= 0.7:
-                    color = "bright_green"
-                    indicator = ">"
-                elif score >= 0.5:
-                    color = "yellow"
-                    indicator = ">"
-                elif score >= 0.3:
-                    color = "bright_red"
-                    indicator = ">"
-                else:
-                    color = "red"
-                    indicator = ">"
-
                 # Format the metric name
                 display_name = name.replace("_", " ").title()
                 yield Label(
-                    f"  [dim]{indicator}[/dim] [{color}]{display_name}:[/{color}] [{color}]{score:.1%}[/{color}]",
+                    f"  [dim]>[/dim] [bold]{display_name}:[/bold] [bold]{score:.1%}[/bold]",
                     classes="metric-row"
                 )
         else:
@@ -242,10 +225,10 @@ class InfoPanel(Widget):
         self._rows = rows or []
 
     def compose(self) -> ComposeResult:
-        yield Static(f"[bold bright_blue]{self._title}[/bold bright_blue]", classes="panel-title")
+        yield Static(f"[bold]{self._title}[/bold]", classes="panel-title")
         yield Rule()
         for label, value in self._rows:
-            yield Label(f"  [dim]{label}:[/dim] [bright_white]{value}[/bright_white]", classes="panel-row")
+            yield Label(f"  [dim]{label}:[/dim] [bold]{value}[/bold]", classes="panel-row")
 
     def update_row(self, index: int, label: str, value: str) -> None:
         """Update a specific row."""
@@ -275,22 +258,20 @@ class QuickActions(Widget):
     }
     """
 
-    def __init__(self, actions: list[tuple[str, str, str]] | None = None, **kwargs):
+    def __init__(self, actions: list[tuple[str, str]] | None = None, **kwargs):
         super().__init__(**kwargs)
         self._actions = actions or [
-            ("1", "Run Evaluation", "bright_blue"),
-            ("2", "Audit Corpus", "bright_cyan"),
-            ("3", "Diagnose", "bright_green"),
-            ("h", "Help", "dim"),
+            ("1", "Run Evaluation"),
+            ("2", "Audit Corpus"),
+            ("3", "Diagnose"),
+            ("h", "Help"),
         ]
 
     def compose(self) -> ComposeResult:
-        yield Static("[bold bright_blue]Quick Actions[/bold bright_blue]", classes="actions-title")
+        yield Static("[bold]Quick Actions[/bold]", classes="actions-title")
         yield Rule()
-        for key, action, color in self._actions:
-            # Build the markup string to avoid f-string issues with Rich tags
-            key_markup = f"[bold {color}][{key}][/bold {color}]"
+        for key, action in self._actions:
             yield Label(
-                f"  {key_markup} {action}",
+                f"  [bold][{key}][/bold] {action}",
                 classes="action-row"
             )

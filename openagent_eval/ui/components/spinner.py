@@ -142,15 +142,15 @@ class SpinnerWidget(Widget):
                 spinner = SPINNER_FRAMES[self._spinner_index % len(SPINNER_FRAMES)]
                 elapsed = self._get_elapsed()
                 spinner_line.update(
-                    f"[bold blue]{spinner}[/bold blue] "
-                    f"[white]{self.operation_text}[/white] "
+                    f"[bold]{spinner}[/bold] "
+                    f"{self.operation_text} "
                     f"[dim]({elapsed})[/dim]"
                 )
             else:
                 if self._elapsed > 0:
                     spinner_line.update(
-                        f"[green]✓[/green] "
-                        f"[white]Completed in {self._elapsed:.1f}s[/white]"
+                        f"[bold]✓[/bold] "
+                        f"Completed in {self._elapsed:.1f}s"
                     )
                 else:
                     spinner_line.update("[dim]Ready[/dim]")

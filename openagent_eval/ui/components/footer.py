@@ -112,7 +112,7 @@ class StatusFooter(Widget):
 
         parts = [
             f"[dim]v{version}[/dim]",
-            f"[blue]>[/blue] [bold]{model}[/bold]",
+            f"[dim]>[/dim] [bold]{model}[/bold]",
             f"[dim]cost:[/dim] {cost}",
             f"[dim]time:[/dim] {elapsed}",
         ]

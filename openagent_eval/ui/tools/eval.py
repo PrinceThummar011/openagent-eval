@@ -55,16 +55,15 @@ class EvalResultPanel(Widget):
 
     def compose(self) -> ComposeResult:
         """Compose the panel."""
-        yield Static(f"[bold blue]{self._title}[/bold blue]", classes="panel-header")
+        yield Static(f"[bold]{self._title}[/bold]", classes="panel-header")
         yield Rule()
 
         if self._metrics:
             for name, score in self._metrics.items():
                 display_name = name.replace("_", " ").title()
-                color = get_metric_color(score)
                 yield Label(
-                    f"  [dim]>[/dim] [{color}]{display_name}:[/{color}] "
-                    f"[{color}]{score:.1%}[/{color}]",
+                    f"  [dim]>[/dim] [bold]{display_name}:[/bold] "
+                    f"[bold]{score:.1%}[/bold]",
                     classes="metric-row"
                 )
         else:
