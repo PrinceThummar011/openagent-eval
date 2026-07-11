@@ -2,21 +2,11 @@
 
 from __future__ import annotations
 
-from importlib.metadata import version
-
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import DataTable, Label, ProgressBar, Rule, Static
-
-
-def _get_version() -> str:
-    """Get the package version."""
-    try:
-        return version("openagent-eval")
-    except Exception:
-        return "0.3.0"
 
 
 class BannerWidget(Widget):

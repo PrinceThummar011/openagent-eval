@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from importlib.metadata import version
-
 from rich.align import Align
 from rich.console import Console
 from rich.panel import Panel
@@ -25,18 +23,6 @@ def _generate_ascii_art(text: str = "oaeval") -> str:
         "╚██████╔╝██║  ██║███████╗ ╚████╔╝ ██║  ██║███████╗\n"
         " ╚═════╝ ╚═╝  ╚═╝╚══════╝  ╚═══╝  ╚═╝  ╚═╝╚══════╝"
     )
-
-
-def _get_version() -> str:
-    """Get the package version.
-
-    Returns:
-        Version string.
-    """
-    try:
-        return version("openagent-eval")
-    except Exception:
-        return "0.3.0"
 
 
 def create_banner(console: Console | None = None, show_version: bool = False) -> None:

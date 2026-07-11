@@ -33,14 +33,6 @@ class TestBannerModule:
             assert isinstance(result, str)
             assert "OAEVAL" in result or "██" in result
 
-    def test_get_version_returns_string(self):
-        """Test that version retrieval returns a string."""
-        from openagent_eval.cli.banner import _get_version
-
-        result = _get_version()
-        assert isinstance(result, str)
-        assert len(result) > 0
-
     def test_create_mini_banner_no_error(self):
         """Test that mini banner displays without error."""
         from rich.console import Console
