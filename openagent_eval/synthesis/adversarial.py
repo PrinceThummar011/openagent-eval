@@ -292,10 +292,23 @@ class AdversarialTestCaseGenerator:
             SynthesisExecutionError: If parsing fails.
         """
         try:
+            import re as _re
+
             text = raw_response.strip()
             if text.startswith("```"):
                 lines = text.split("\n")
                 text = "\n".join(lines[1:-1])
+
+            # Try to find JSON array in the response
+            start_idx = text.find("[")
+            end_idx = text.rfind("]")
+            if start_idx != -1 and end_idx > start_idx:
+                text = text[start_idx : end_idx + 1]
+
+            # Fix common JSON issues from LLM output
+            text = _re.sub(r",\s*([}\]])", r"\1", text)
+            if "'" in text and '"' not in text:
+                text = text.replace("'", '"')
 
             data = json.loads(text)
 

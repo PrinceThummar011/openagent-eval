@@ -146,3 +146,64 @@ class TestQuestionGenerator:
 
         assert len(result) == 1
         assert result[0].question == "Valid?"
+
+    @pytest.mark.asyncio
+    async def test_generate_json_with_trailing_comma(self) -> None:
+        """Test parsing JSON with trailing commas before closing bracket."""
+        llm_response = '[\n  {"question": "Test?", "answer": "Test."},\n]'
+        mock_llm = _make_mock_llm(llm_response)
+        gen = QuestionGenerator(mock_llm)
+
+        result = await gen.generate(context="Test context.", count=1)
+
+        assert len(result) == 1
+        assert result[0].question == "Test?"
+
+    @pytest.mark.asyncio
+    async def test_generate_json_with_extra_text_around(self) -> None:
+        """Test parsing JSON when LLM wraps it with extra text."""
+        llm_response = 'Here are some questions:\n[\n  {"question": "What is Python?", "answer": "A language."}\n]\nHope this helps!'
+        mock_llm = _make_mock_llm(llm_response)
+        gen = QuestionGenerator(mock_llm)
+
+        result = await gen.generate(context="Python is a language.", count=1)
+
+        assert len(result) == 1
+        assert result[0].question == "What is Python?"
+
+    @pytest.mark.asyncio
+    async def test_generate_json_with_single_quotes(self) -> None:
+        """Test parsing JSON with single quotes instead of double quotes."""
+        llm_response = "[{'question': 'What is Python?', 'answer': 'A language.'}]"
+        mock_llm = _make_mock_llm(llm_response)
+        gen = QuestionGenerator(mock_llm)
+
+        result = await gen.generate(context="Python is a language.", count=1)
+
+        assert len(result) == 1
+        assert result[0].question == "What is Python?"
+
+    @pytest.mark.asyncio
+    async def test_generate_json_in_markdown_code_block(self) -> None:
+        """Test parsing JSON wrapped in markdown code block."""
+        llm_response = '```json\n[\n  {"question": "Test?", "answer": "Test."}\n]\n```'
+        mock_llm = _make_mock_llm(llm_response)
+        gen = QuestionGenerator(mock_llm)
+
+        result = await gen.generate(context="Test context.", count=1)
+
+        assert len(result) == 1
+        assert result[0].question == "Test?"
+
+    @pytest.mark.asyncio
+    async def test_generate_json_with_multiple_items_and_trailing_comma(self) -> None:
+        """Test parsing JSON with multiple items and trailing comma."""
+        llm_response = '[\n  {"question": "Q1?", "answer": "A1."},\n  {"question": "Q2?", "answer": "A2."},\n]'
+        mock_llm = _make_mock_llm(llm_response)
+        gen = QuestionGenerator(mock_llm)
+
+        result = await gen.generate(context="Test.", count=2)
+
+        assert len(result) == 2
+        assert result[0].question == "Q1?"
+        assert result[1].question == "Q2?"
