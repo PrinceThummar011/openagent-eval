@@ -48,7 +48,7 @@ jobs:
       - name: Run corpus audit
         run: |
           oaeval audit \
-            --corpus ./knowledge_base/ \
+            ./knowledge_base/ \
             --checks contradiction,staleness,duplicate,coverage \
             --output json > corpus-audit.json
 

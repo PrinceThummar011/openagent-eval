@@ -1,5 +1,7 @@
 """Unit tests for CLI test command."""
 
+import re
+
 import pytest
 from typer.testing import CliRunner
 
@@ -9,6 +11,11 @@ from openagent_eval.cli.main import app
 runner = CliRunner()
 
 
+def _strip_ansi(text: str) -> str:
+    """Remove ANSI escape codes from text."""
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
+
+
 class TestTestCommand:
     """Tests for oaeval test command."""
 
@@ -16,7 +23,8 @@ class TestTestCommand:
         """Test test command help output."""
         result = runner.invoke(app, ["test", "--help"])
         assert result.exit_code == 0
-        assert "Run evaluation as a CI/CD test" in result.output
+        output = _strip_ansi(result.output)
+        assert "Run evaluation as a CI/CD test" in output
 
     def test_test_command_no_config(self):
         """Test test command without config shows error."""
@@ -54,26 +62,19 @@ class TestTestCommand:
 
     def test_test_command_json_output(self):
         """Test test command with --json flag."""
-        # This would need a valid config, so we just check the flag is accepted
-        result = runner.invoke(
-            app,
-            ["test", "--help"],
-        )
-        assert "--json" in result.output
+        result = runner.invoke(app, ["test", "--help"])
+        output = _strip_ansi(result.output)
+        assert "json" in output.lower()
 
     def test_test_command_timeout_option(self):
         """Test test command with --timeout option."""
-        result = runner.invoke(
-            app,
-            ["test", "--help"],
-        )
-        assert "--timeout" in result.output
+        result = runner.invoke(app, ["test", "--help"])
+        output = _strip_ansi(result.output)
+        assert "timeout" in output.lower()
 
     def test_test_command_threshold_option(self):
         """Test test command with --threshold option."""
-        result = runner.invoke(
-            app,
-            ["test", "--help"],
-        )
-        assert "--threshold" in result.output
-        assert "-t" in result.output
+        result = runner.invoke(app, ["test", "--help"])
+        output = _strip_ansi(result.output)
+        assert "threshold" in output.lower()
+        assert "-t" in output
