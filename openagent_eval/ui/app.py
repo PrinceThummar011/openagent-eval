@@ -5,8 +5,15 @@ from __future__ import annotations
 from pathlib import Path
 
 from textual.app import App, ComposeResult
-from textual.theme import Theme
+from textual.binding import Binding
+from textual.containers import Vertical
+from textual.screen import Screen
+from textual.widgets import Footer, Header, Static
 
+from openagent_eval.ui.components.command_input import Command, RichCommandInput
+from openagent_eval.ui.components.footer import StatusFooter
+from openagent_eval.ui.components.message_list import Message, MessageList, MessageRole
+from openagent_eval.ui.components.spinner import SpinnerWidget
 from openagent_eval.ui.screens import (
     AuditScreen,
     DiagnoseScreen,
@@ -14,6 +21,102 @@ from openagent_eval.ui.screens import (
     HelpScreen,
     MainDashboard,
 )
+from openagent_eval.ui.streaming import StreamingManager, StreamingState
+from openagent_eval.ui.theme import ThemeName, get_theme
+
+
+class ChatScreen(Screen):
+    """Claude Code-style chat screen with message list and command input.
+
+    This is the main interaction screen, similar to Claude Code's interface.
+    """
+
+    DEFAULT_CSS = """
+    ChatScreen {
+        layout: vertical;
+    }
+
+    ChatScreen #header {
+        height: auto;
+        dock: top;
+    }
+
+    ChatScreen #messages-container {
+        height: 1fr;
+    }
+
+    ChatScreen #footer {
+        height: 1;
+        dock: bottom;
+    }
+    """
+
+    BINDINGS = [
+        Binding("ctrl+q", "quit", "Quit", show=True),
+        Binding("ctrl+p", "command_palette", "Commands", show=True),
+        Binding("ctrl+l", "clear_messages", "Clear", show=True),
+        Binding("escape", "go_back", "Back", show=True),
+    ]
+
+    def __init__(self, config_path: str | None = None):
+        super().__init__()
+        self.config_path = config_path
+        self._streaming = StreamingManager()
+
+    def compose(self) -> ComposeResult:
+        """Compose the chat screen."""
+        # Header
+        yield Header(id="header")
+
+        # Messages container
+        with Vertical(id="messages-container"):
+            yield MessageList(id="messages")
+
+        # Footer with status
+        yield StatusFooter(id="footer")
+
+    def on_mount(self) -> None:
+        """Initialize the chat screen on mount."""
+        # Add welcome message
+        messages = self.query_one("#messages", MessageList)
+        messages.add_message(Message(
+            role=MessageRole.SYSTEM,
+            content="Welcome to OpenAgent Eval! Type a command to get started."
+        ))
+
+        # Add example commands
+        messages.add_message(Message(
+            role=MessageRole.SYSTEM,
+            content="Available commands: eval, audit, diagnose, help, clear, quit"
+        ))
+
+        # Focus on the message list
+        self.query_one("#messages").focus()
+
+    def add_message(self, role: MessageRole, content: str, **kwargs) -> None:
+        """Add a message to the chat.
+
+        Args:
+            role: Message role
+            content: Message content
+            **kwargs: Additional message attributes
+        """
+        messages = self.query_one("#messages", MessageList)
+        messages.add_message(Message(role=role, content=content, **kwargs))
+
+    def action_command_palette(self) -> None:
+        """Show command palette (placeholder for now)."""
+        self.add_message(MessageRole.SYSTEM, "Command palette coming soon!")
+
+    def action_clear_messages(self) -> None:
+        """Clear all messages."""
+        messages = self.query_one("#messages", MessageList)
+        messages.clear()
+        self.add_message(MessageRole.SYSTEM, "Messages cleared.")
+
+    def action_go_back(self) -> None:
+        """Go back to main dashboard."""
+        self.app.pop_screen()
 
 
 class OAEvalDashboard(App):
@@ -28,22 +131,24 @@ class OAEvalDashboard(App):
 
     CSS_PATH = str(Path(__file__).parent / "styles.tcss")
 
-    # Custom theme for the dashboard
+    # Use our custom theme
     THEME = "dark"
 
     BINDINGS = [
-        ("ctrl+q", "quit", "Quit"),
-        ("f1", "show_help", "Help"),
-        ("1", "show_dashboard", "Dashboard"),
-        ("2", "show_evaluate", "Evaluate"),
-        ("3", "show_audit", "Audit"),
-        ("4", "show_diagnose", "Diagnose"),
-        ("d", "toggle_dark", "Toggle Dark Mode"),
+        Binding("ctrl+q", "quit", "Quit", show=True),
+        Binding("f1", "show_help", "Help", show=True),
+        Binding("1", "show_dashboard", "Dashboard", show=True),
+        Binding("2", "show_evaluate", "Evaluate", show=True),
+        Binding("3", "show_audit", "Audit", show=True),
+        Binding("4", "show_diagnose", "Diagnose", show=True),
+        Binding("5", "show_chat", "Chat", show=True),
+        Binding("d", "toggle_dark", "Toggle Dark Mode", show=True),
     ]
 
     def __init__(self, config_path: str | None = None, **kwargs):
         super().__init__(**kwargs)
         self.config_path = config_path
+        self._streaming = StreamingManager()
 
     def compose(self) -> ComposeResult:
         """Compose the app's widget tree."""
@@ -57,6 +162,7 @@ class OAEvalDashboard(App):
         self.register_screen("audit", AuditScreen())
         self.register_screen("diagnose", DiagnoseScreen())
         self.register_screen("help", HelpScreen())
+        self.register_screen("chat", ChatScreen(config_path=self.config_path))
 
         # Show main dashboard
         self.push_screen("main")
@@ -80,6 +186,10 @@ class OAEvalDashboard(App):
     def action_show_diagnose(self) -> None:
         """Show diagnose screen."""
         self.push_screen("diagnose")
+
+    def action_show_chat(self) -> None:
+        """Show chat screen."""
+        self.push_screen("chat")
 
     def action_toggle_dark(self) -> None:
         """Toggle dark mode."""
