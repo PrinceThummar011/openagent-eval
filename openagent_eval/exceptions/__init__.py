@@ -6,6 +6,12 @@ All exceptions inherit from OpenAgentEvalError for consistent error handling.
 from openagent_eval.exceptions.base import OpenAgentEvalError
 from openagent_eval.exceptions.cli import CLIError, CommandError, ValidationError
 from openagent_eval.exceptions.config import ConfigurationError
+from openagent_eval.exceptions.corpus import (
+    CorpusAuditError,
+    CorpusError,
+    CorpusNotFoundError,
+    CorpusValidationError,
+)
 from openagent_eval.exceptions.dataset import (
     DatasetError,
     DatasetNotFoundError,
@@ -29,6 +35,10 @@ from openagent_eval.exceptions.provider import (
 __all__ = [
     "OpenAgentEvalError",
     "ConfigurationError",
+    "CorpusAuditError",
+    "CorpusError",
+    "CorpusNotFoundError",
+    "CorpusValidationError",
     "DatasetError",
     "DatasetNotFoundError",
     "InvalidDatasetError",

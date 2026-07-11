@@ -15,6 +15,7 @@ from openagent_eval.cli.commands.list_evaluations import list_command
 from openagent_eval.cli.commands.report import report_command
 from openagent_eval.cli.commands.run import run_command
 from openagent_eval.cli.commands.validate import validate_command
+from openagent_eval.cli.commands.audit import audit_command
 from openagent_eval.cli.context import CLIContext, set_context
 from openagent_eval.cli.utils.callbacks import version_callback
 from openagent_eval.exceptions import OpenAgentEvalError
@@ -25,6 +26,7 @@ _ERROR_CODES: dict[type, int] = {
     "DatasetError": 3,
     "ProviderError": 4,
     "MetricError": 5,
+    "CorpusError": 6,
 }
 
 app = typer.Typer(
@@ -111,6 +113,7 @@ app.command(name="list")(list_command)
 app.command(name="doctor")(doctor_command)
 app.command(name="validate")(validate_command)
 app.command(name="delete")(delete_command)
+app.command(name="audit")(audit_command)
 
 
 # Shell completion command
@@ -158,7 +161,7 @@ _oaeval_completion() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    commands="init run report compare list doctor validate delete completion"
+    commands="init run report compare list doctor validate delete audit completion"
 
     if [[ ${cur} == -* ]]; then
         COMPREPLY=( $(compgen -W "--help --version --quiet --json --no-color --verbose" -- ${cur}) )
@@ -192,6 +195,9 @@ _oaeval_completion() {
         delete)
             COMPREPLY=( $(compgen -W "--output-dir --force --help" -- ${cur}) )
             ;;
+        audit)
+            COMPREPLY=( $(compgen -W "--checks --staleness-days --similarity-threshold --max-documents --output --verbose --help" -- ${cur}) )
+            ;;
         completion)
             COMPREPLY=( $(compgen -W "bash zsh fish" -- ${cur}) )
             ;;
@@ -222,6 +228,7 @@ _oaeval() {
         'doctor:Check environment and dependencies'
         'validate:Validate configuration'
         'delete:Delete evaluation reports'
+        'audit:Audit corpus health'
         'completion:Generate shell completion script'
     )
 
@@ -287,6 +294,16 @@ _oaeval() {
                         '--force[Skip confirmation]' \\
                         '--help[Show help]'
                     ;;
+                audit)
+                    _arguments \\
+                        '--checks[Checks to perform]:checks:' \\
+                        '--staleness-days[Staleness threshold]:days:' \\
+                        '--similarity-threshold[Similarity threshold]:threshold:' \\
+                        '--max-documents[Max documents]:max:' \\
+                        '--output[Output format]:format:(json)' \\
+                        '--verbose[Enable verbose output]' \\
+                        '--help[Show help]'
+                    ;;
                 completion)
                     _arguments \\
                         '1:shell:(bash zsh fish)'
@@ -337,6 +354,7 @@ complete -c oaeval -n __oaeval_no_subcommand -a list -d 'List previous evaluatio
 complete -c oaeval -n __oaeval_no_subcommand -a doctor -d 'Check environment and dependencies'
 complete -c oaeval -n __oaeval_no_subcommand -a validate -d 'Validate configuration'
 complete -c oaeval -n __oaeval_no_subcommand -a delete -d 'Delete evaluation reports'
+complete -c oaeval -n __oaeval_no_subcommand -a audit -d 'Audit corpus health'
 complete -c oaeval -n __oaeval_no_subcommand -a completion -d 'Generate shell completion script'
 
 # run command options
@@ -368,6 +386,14 @@ complete -c oaeval -n __oaeval_using_command -a doctor -l check-api -d 'Test API
 # delete command options
 complete -c oaeval -n __oaeval_using_command -a delete -l output-dir -s d -d 'Output directory' -r
 complete -c oaeval -n __oaeval_using_command -a delete -l force -s f -d 'Skip confirmation'
+
+# audit command options
+complete -c oaeval -n __oaeval_using_command -a audit -l checks -s c -d 'Checks to perform' -r
+complete -c oaeval -n __oaeval_using_command -a audit -l staleness-days -d 'Staleness threshold' -r
+complete -c oaeval -n __oaeval_using_command -a audit -l similarity-threshold -d 'Similarity threshold' -r
+complete -c oaeval -n __oaeval_using_command -a audit -l max-documents -d 'Max documents' -r
+complete -c oaeval -n __oaeval_using_command -a audit -l output -s o -d 'Output format' -r
+complete -c oaeval -n __oaeval_using_command -a audit -l verbose -s v -d 'Enable verbose output'
 
 # completion command options
 complete -c oaeval -n __oaeval_using_command -a completion -a 'bash zsh fish' -d 'Shell'
