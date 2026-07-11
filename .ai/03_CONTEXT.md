@@ -9,11 +9,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Phase** | Phase 13 Complete — CI/CD Integration |
+| **Phase** | Phase 14 Complete - Hybrid CLI UI |
 | **Status** | v1.0 complete; production-grade features in progress |
 | **Last Updated** | 2026-07-11 |
-| **Next Action** | Phase 14 (Hybrid CLI UI) or another feature |
-| **Current Branch** | feature/cicd-integration |
+| **Next Action** | Another feature or v1.0 release |
+| **Current Branch** | feature/hybrid-cli-ui |
 | **Remote** | https://github.com/OpenAgentHQ/openagent-eval.git |
 
 ---
@@ -213,6 +213,18 @@ SDK (openagent_eval - Core Evaluation API)
 - [x] Write documentation for CI/CD integration
 - [x] Add GitHub Actions workflow example
 
+### Milestone 14: Hybrid CLI UI — COMPLETE
+- [x] Add `pyfiglet` and `textual` to optional dependencies
+- [x] Create `openagent_eval/cli/banner.py` — ASCII art banner with Rich
+- [x] Update existing CLI commands to display banner
+- [x] Create `openagent_eval/ui/` module structure
+- [x] Implement Textual dashboard app (`app.py`)
+- [x] Create dashboard screens (main, audit, evaluate, diagnose)
+- [x] Add custom widgets (banner, results table, progress bars)
+- [x] Wire up `oaeval ui` command
+- [x] Add keyboard shortcuts and navigation
+- [x] Test and polish (15 tests passing)
+
 ---
 
 ## Current Questions
@@ -280,6 +292,7 @@ chore/{description}        # Maintenance tasks
 - Phase 8 is pending - Documentation
 - **Phase 9-13 are NEW** — Production-grade RAG evaluation features
 - **Phase 13 is COMPLETE** — CI/CD Integration (pytest plugin, threshold gating, `oaeval test` command)
+- **Phase 14 is COMPLETE** — Hybrid CLI UI (Rich banner, Textual TUI dashboard, 15 tests)
 - **Phase 12 is COMPLETE** — Synthetic Test Data generator implemented (56 tests)
 - CORRECTION: earlier "517+ passing / all phases complete" status was inaccurate —
   the core pipeline did not actually evaluate. That gap is closed.
@@ -296,7 +309,7 @@ chore/{description}        # Maintenance tasks
 3. **NLI-based Scoring** — Word overlap is insufficient for production use
 4. **Synthetic Test Data** — Bootstrap evaluation from your corpus
 5. **CLI-first, Local-first** — No cloud services, no dashboards, no authentication
-6. **Hybrid CLI UI** — Beautiful Rich output + optional Textual TUI dashboard
+6. **Hybrid CLI UI** — Beautiful Rich output + optional Textual TUI dashboard (IMPLEMENTED)
 
 ---
 
@@ -322,6 +335,7 @@ chore/{description}        # Maintenance tasks
 
 | Date | Change |
 |------|--------|
+| 2026-07-11 | **Phase 14 COMPLETE** — Hybrid CLI UI implemented (Rich banner, Textual TUI dashboard, 15 tests) |
 | 2026-07-11 | **Phase 13 COMPLETE** — CI/CD Integration implemented (pytest plugin, threshold gating, `oaeval test` command) |
 | 2026-07-11 | **Phase 12 COMPLETE** — Synthetic Test Data generator implemented (56 tests) |
 | 2026-07-11 | Added Phase 14: Hybrid CLI UI (Rich banner + Textual TUI dashboard) |

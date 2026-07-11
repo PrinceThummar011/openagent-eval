@@ -7,6 +7,7 @@ import sys
 import typer
 from rich.console import Console
 
+from openagent_eval.cli.banner import create_mini_banner
 from openagent_eval.cli.commands.compare import compare_command
 from openagent_eval.cli.commands.delete import delete_command
 from openagent_eval.cli.commands.diagnose import diagnose_command
@@ -24,7 +25,7 @@ from openagent_eval.cli.utils.callbacks import version_callback
 from openagent_eval.exceptions import OpenAgentEvalError
 
 # Error code mapping for different exception types
-_ERROR_CODES: dict[type, int] = {
+_ERROR_CODES: dict[str, int] = {
     "ConfigurationError": 2,
     "DatasetError": 3,
     "ProviderError": 4,
@@ -83,6 +84,16 @@ def main(
         verbose=verbose,
     )
     set_context(ctx)
+
+    # Show banner when invoked without a subcommand (help display)
+    try:
+        import click
+
+        ctx = click.get_current_context(silent=True)
+        if ctx is not None and ctx.invoked_subcommand is None and not quiet:
+            create_mini_banner()
+    except Exception:
+        pass
 
 
 def _handle_error(error: OpenAgentEvalError) -> None:
@@ -167,7 +178,7 @@ _oaeval_completion() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    commands="init run report compare list doctor validate delete diagnose audit test completion"
+    commands="init run report compare list doctor validate delete diagnose audit synth test completion"
 
     if [[ ${cur} == -* ]]; then
         COMPREPLY=( $(compgen -W "--help --version --quiet --json --no-color --verbose" -- ${cur}) )

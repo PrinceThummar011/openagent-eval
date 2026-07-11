@@ -14,7 +14,7 @@
 | **Package** | openagent_eval |
 | **CLI** | oaeval |
 | **Purpose** | Open-source CLI framework for evaluating RAG systems and AI Agents |
-| **Phase** | v0.3.0 - Phases 1-13 Complete |
+| **Phase** | v0.3.0 - Phases 1-14 Complete |
 | **Status** | Active Development |
 | **Source of Truth** | PROJECT.md |
 
@@ -525,7 +525,7 @@ class MetricResult:
 
 ---
 
-## Hybrid CLI Architecture (Planned - Phase 13)
+## Hybrid CLI Architecture (Implemented - Phase 14)
 
 ### Design Principle
 
@@ -657,14 +657,14 @@ openagent_eval/
 - [x] Write documentation for CI/CD integration
 - [x] Add GitHub Actions workflow example
 
-### Phase 14: Hybrid CLI UI (Planned)
-- [ ] Add `pyfiglet` and `textual` to optional dependencies
-- [ ] Create `openagent_eval/cli/banner.py` — ASCII art banner with Rich
-- [ ] Create `openagent_eval/ui/` module structure
-- [ ] Implement Textual dashboard app
-- [ ] Create dashboard screens (main, audit, evaluate, diagnose)
-- [ ] Add custom widgets (banner, results table, progress bars)
-- [ ] Wire up `oaeval ui` command
+### Phase 14: Hybrid CLI UI ✅
+- [x] Add `pyfiglet` and `textual` to optional dependencies
+- [x] Create `openagent_eval/cli/banner.py` — ASCII art banner with Rich
+- [x] Create `openagent_eval/ui/` module structure
+- [x] Implement Textual dashboard app
+- [x] Create dashboard screens (main, audit, evaluate, diagnose)
+- [x] Add custom widgets (banner, results table, progress bars)
+- [x] Wire up `oaeval ui` command
 
 ---
 
