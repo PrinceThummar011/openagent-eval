@@ -9,6 +9,7 @@ from rich.console import Console
 
 from openagent_eval.cli.commands.compare import compare_command
 from openagent_eval.cli.commands.delete import delete_command
+from openagent_eval.cli.commands.diagnose import diagnose_command
 from openagent_eval.cli.commands.doctor import doctor_command
 from openagent_eval.cli.commands.init import init_command
 from openagent_eval.cli.commands.list_evaluations import list_command
@@ -113,6 +114,7 @@ app.command(name="list")(list_command)
 app.command(name="doctor")(doctor_command)
 app.command(name="validate")(validate_command)
 app.command(name="delete")(delete_command)
+app.command(name="diagnose")(diagnose_command)
 app.command(name="audit")(audit_command)
 
 
@@ -161,7 +163,7 @@ _oaeval_completion() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    commands="init run report compare list doctor validate delete audit completion"
+    commands="init run report compare list doctor validate delete diagnose audit completion"
 
     if [[ ${cur} == -* ]]; then
         COMPREPLY=( $(compgen -W "--help --version --quiet --json --no-color --verbose" -- ${cur}) )
@@ -228,6 +230,7 @@ _oaeval() {
         'doctor:Check environment and dependencies'
         'validate:Validate configuration'
         'delete:Delete evaluation reports'
+        'diagnose:Diagnose evaluation failures and attribute blame'
         'audit:Audit corpus health'
         'completion:Generate shell completion script'
     )
@@ -294,6 +297,14 @@ _oaeval() {
                         '--force[Skip confirmation]' \\
                         '--help[Show help]'
                     ;;
+                diagnose)
+                    _arguments \\
+                        '--output[Output format]:format:(terminal json)' \\
+                        '--threshold[Confidence threshold]:threshold:' \\
+                        '--max-recs[Max recommendations]:max:' \\
+                        '--verbose[Enable verbose output]' \\
+                        '--help[Show help]'
+                    ;;
                 audit)
                     _arguments \\
                         '--checks[Checks to perform]:checks:' \\
@@ -354,6 +365,7 @@ complete -c oaeval -n __oaeval_no_subcommand -a list -d 'List previous evaluatio
 complete -c oaeval -n __oaeval_no_subcommand -a doctor -d 'Check environment and dependencies'
 complete -c oaeval -n __oaeval_no_subcommand -a validate -d 'Validate configuration'
 complete -c oaeval -n __oaeval_no_subcommand -a delete -d 'Delete evaluation reports'
+complete -c oaeval -n __oaeval_no_subcommand -a diagnose -d 'Diagnose evaluation failures and attribute blame'
 complete -c oaeval -n __oaeval_no_subcommand -a audit -d 'Audit corpus health'
 complete -c oaeval -n __oaeval_no_subcommand -a completion -d 'Generate shell completion script'
 
@@ -386,6 +398,12 @@ complete -c oaeval -n __oaeval_using_command -a doctor -l check-api -d 'Test API
 # delete command options
 complete -c oaeval -n __oaeval_using_command -a delete -l output-dir -s d -d 'Output directory' -r
 complete -c oaeval -n __oaeval_using_command -a delete -l force -s f -d 'Skip confirmation'
+
+# diagnose command options
+complete -c oaeval -n __oaeval_using_command -a diagnose -l output -s o -d 'Output format' -r
+complete -c oaeval -n __oaeval_using_command -a diagnose -l threshold -s t -d 'Confidence threshold' -r
+complete -c oaeval -n __oaeval_using_command -a diagnose -l max-recs -d 'Max recommendations' -r
+complete -c oaeval -n __oaeval_using_command -a diagnose -l verbose -s v -d 'Enable verbose output'
 
 # audit command options
 complete -c oaeval -n __oaeval_using_command -a audit -l checks -s c -d 'Checks to perform' -r

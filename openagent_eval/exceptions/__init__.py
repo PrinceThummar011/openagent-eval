@@ -24,6 +24,11 @@ from openagent_eval.exceptions.metric import (
     MetricNotFoundError,
     MetricTimeoutError,
 )
+from openagent_eval.exceptions.diagnosis import (
+    BlameAttributionError,
+    DiagnosisError,
+    DiagnosisExecutionError,
+)
 from openagent_eval.exceptions.plugin import PluginError, PluginLoadError, PluginNotFoundError
 from openagent_eval.exceptions.provider import (
     ProviderConnectionError,
@@ -57,4 +62,7 @@ __all__ = [
     "CLIError",
     "CommandError",
     "ValidationError",
+    "DiagnosisError",
+    "DiagnosisExecutionError",
+    "BlameAttributionError",
 ]
