@@ -22,6 +22,8 @@ class Theme:
     Flat structure for O(1) lookup. Each token maps to a raw color value.
     """
 
+    name: ThemeName = ThemeName.DARK
+
     # Brand identity
     brand: str = "rgb(79,140,255)"
     brand_shimmer: str = "rgb(120,170,255)"
@@ -104,9 +106,10 @@ class Theme:
 
 
 # Pre-defined themes
-DARK_THEME = Theme()
+DARK_THEME = Theme(name=ThemeName.DARK)
 
 LIGHT_THEME = Theme(
+    name=ThemeName.LIGHT,
     brand="rgb(40,100,200)",
     brand_shimmer="rgb(60,120,220)",
     brand_dim="rgb(80,140,240)",
@@ -129,6 +132,7 @@ LIGHT_THEME = Theme(
 )
 
 ANSI_DARK_THEME = Theme(
+    name=ThemeName.ANSI_DARK,
     brand="bright_blue",
     brand_shimmer="bright_cyan",
     brand_dim="blue",
@@ -165,7 +169,7 @@ THEMES: dict[ThemeName, Theme] = {
     ThemeName.DARK: DARK_THEME,
     ThemeName.LIGHT: LIGHT_THEME,
     ThemeName.ANSI_DARK: ANSI_DARK_THEME,
-    ThemeName.ANSI_LIGHT: LIGHT_THEME,  # Uses light theme with ANSI colors
+    ThemeName.ANSI_LIGHT: LIGHT_THEME,
 }
 
 
