@@ -61,6 +61,7 @@ openagent_eval/
 ├── cli/                    # CLI commands (Typer)
 │   ├── __init__.py
 │   ├── main.py            # Main CLI entry point
+│   ├── banner.py          # ASCII art banner with Rich (NEW)
 │   ├── commands/          # Individual commands
 │   │   ├── __init__.py
 │   │   ├── init.py        # oaeval init
@@ -68,10 +69,21 @@ openagent_eval/
 │   │   ├── report.py      # oaeval report
 │   │   ├── compare.py     # oaeval compare
 │   │   ├── list.py        # oaeval list
-│   │   └── doctor.py      # oaeval doctor
+│   │   ├── doctor.py      # oaeval doctor
+│   │   ├── audit.py       # oaeval audit (NEW - corpus health)
+│   │   ├── diagnose.py    # oaeval diagnose (NEW - blame attribution)
+│   │   ├── synth.py       # oaeval synth (NEW - synthetic data)
+│   │   └── ui.py          # oaeval ui (NEW - Textual TUI)
 │   └── utils/             # CLI utilities
 │       ├── __init__.py
 │       └── display.py     # Rich display helpers
+│
+├── ui/                     # Textual TUI application (NEW)
+│   ├── __init__.py
+│   ├── app.py             # Main Textual App class
+│   ├── screens.py         # Dashboard screens (main, audit, evaluate, diagnose)
+│   ├── widgets.py         # Custom widgets (banner, results table, progress bars)
+│   └── styles.tcss        # Textual CSS for layout
 │
 ├── config/                 # Configuration management
 │   ├── __init__.py
@@ -115,6 +127,11 @@ openagent_eval/
 │   │   ├── bleu.py
 │   │   ├── rouge.py
 │   │   └── f1.py
+│   ├── nli/               # NLI-based scoring (NEW)
+│   │   ├── __init__.py
+│   │   ├── judge.py       # NLIJudge using DeBERTa
+│   │   ├── claim_extractor.py  # Split answer into atomic claims
+│   │   └── evidence_finder.py  # Find supporting evidence per claim
 │   ├── performance/       # Performance metrics
 │   │   ├── __init__.py
 │   │   └── latency.py
@@ -122,12 +139,37 @@ openagent_eval/
 │       ├── __init__.py
 │       └── tokens.py
 │
+├── corpus/                 # Corpus Health Auditor (NEW)
+│   ├── __init__.py
+│   ├── base.py            # BaseCorpusAnalyzer ABC
+│   ├── models.py          # CorpusIssue, AuditReport
+│   ├── contradiction.py   # Cross-document contradiction detection
+│   ├── staleness.py       # Outdated document detection
+│   ├── duplicates.py      # Divergent duplicate detection
+│   ├── coverage.py        # Thematic coverage analysis
+│   └── auditor.py         # CorpusAuditor orchestrator
+│
+├── diagnosis/              # Component Diagnosis (NEW)
+│   ├── __init__.py
+│   ├── analyzer.py        # DiagnosisAnalyzer
+│   ├── blame.py           # BlameAttribution (retrieval vs generation)
+│   ├── chunking.py        # ChunkingQualityAnalyzer
+│   └── models.py          # DiagnosisReport, FailureMode
+│
+├── synthesis/              # Synthetic Test Data (NEW)
+│   ├── __init__.py
+│   ├── generator.py       # SyntheticDataGenerator
+│   ├── question_gen.py    # QuestionGenerator from documents
+│   ├── adversarial.py     # AdversarialTestCaseGenerator
+│   └── models.py          # SyntheticDataset, TestCase
+│
 ├── providers/              # LLM/Retriever adapters
 │   ├── __init__.py
 │   ├── base/
 │   │   ├── __init__.py
 │   │   ├── llm.py         # LLMProvider interface
 │   │   └── retriever.py   # Retriever interface
+│   ├── factory.py         # Provider factory with lazy loading
 │   ├── llm/               # LLM providers
 │   │   ├── __init__.py
 │   │   ├── openai.py
@@ -136,9 +178,24 @@ openagent_eval/
 │   │   ├── groq.py
 │   │   ├── openrouter.py
 │   │   └── ollama.py
-│   └── retrievers/        # Retriever providers
+│   ├── retrievers/        # Retriever providers (11 total)
+│   │   ├── __init__.py
+│   │   ├── _scoring.py    # Score normalization helpers
+│   │   ├── chroma.py      # ChromaDB
+│   │   ├── qdrant.py      # Qdrant
+│   │   ├── pinecone.py    # Pinecone
+│   │   ├── weaviate.py    # Weaviate
+│   │   ├── faiss.py       # FAISS
+│   │   ├── pgvector.py    # PostgreSQL + pgvector
+│   │   ├── elasticsearch.py # Elasticsearch
+│   │   ├── bm25.py        # BM25 lexical baseline
+│   │   ├── http.py        # Generic REST endpoint
+│   │   ├── memory.py      # In-memory vector store
+│   │   └── mock.py        # Offline/testing
+│   └── embedders/         # Embedder abstraction
 │       ├── __init__.py
-│       └── chroma.py
+│       ├── sentence_transformers.py
+│       └── mock.py
 │
 ├── reports/                # Report generation
 │   ├── __init__.py
@@ -166,6 +223,7 @@ openagent_eval/
 │   ├── metric.py          # Metric errors
 │   ├── provider.py        # Provider errors
 │   ├── plugin.py          # Plugin errors
+│   ├── corpus.py          # Corpus audit errors (NEW)
 │   └── cli.py             # CLI errors
 │
 ├── types/                  # Shared type definitions
@@ -208,7 +266,47 @@ def run(config_path: str):
     display_results(result)
 ```
 
-### 2. Core Orchestration (`core/`)
+### 2. UI Layer (`ui/`) — NEW
+
+**Responsibility:** Interactive Textual TUI dashboard for power users.
+
+**Key insight:** Standard CLI commands use Rich for beautiful output. `oaeval ui` launches a full Textual dashboard for interactive exploration.
+
+**Components:**
+
+| File | Responsibility |
+|------|----------------|
+| `app.py` | Main Textual App class |
+| `screens.py` | Dashboard screens (main, audit, evaluate, diagnose) |
+| `widgets.py` | Custom widgets (banner, results table, progress bars) |
+| `styles.tcss` | Textual CSS for layout |
+
+**Example:**
+```python
+from textual.app import App
+
+class OAEvalDashboard(App):
+    """Interactive evaluation dashboard."""
+    
+    def compose(self):
+        yield Header()
+        yield DashboardScreen()
+        yield Footer()
+    
+    BINDINGS = [
+        ("1", "run_evaluation", "Run Eval"),
+        ("2", "audit_corpus", "Audit Corpus"),
+        ("q", "quit", "Quit"),
+    ]
+```
+
+**Rules:**
+- TUI is opt-in via `oaeval ui` command
+- Standard CLI commands remain unchanged
+- No business logic in UI layer
+- Display-only (delegates to core modules)
+
+### 3. Core Orchestration (`core/`)
 
 **Responsibility:** Orchestrate the evaluation pipeline.
 
@@ -359,6 +457,89 @@ class MyMetric(BaseMetric):
 my_metric = "my_package.metrics:MyMetric"
 ```
 
+### 8. Corpus Health Auditor (`corpus/`) — NEW
+
+**Responsibility:** Validate the knowledge base before connecting to RAG.
+
+**Key insight:** Pipeline evaluation frameworks assume a coherent corpus. This module checks that assumption.
+
+**Components:**
+
+| File | Responsibility |
+|------|----------------|
+| `base.py` | `BaseCorpusAnalyzer` ABC |
+| `contradiction.py` | Detect cross-document contradictions using LLM-as-Judge |
+| `staleness.py` | Detect outdated documents using timestamp analysis |
+| `duplicates.py` | Detect divergent duplicates using embedding similarity |
+| `coverage.py` | Analyze thematic coverage gaps |
+| `auditor.py` | `CorpusAuditor` orchestrator |
+
+**Example:**
+```python
+from openagent_eval.corpus import CorpusAuditor
+
+auditor = CorpusAuditor(llm_provider=openai_provider)
+report = await auditor.audit("./knowledge_base/")
+
+print(report.health_score)  # 0.85
+print(report.issues)        # [CorpusIssue(type="contradiction", ...)]
+```
+
+### 9. Component Diagnosis (`diagnosis/`) — NEW
+
+**Responsibility:** Attribute blame when evaluations fail.
+
+**Key insight:** 90% of production failures are retrieval problems, but teams don't know which component failed.
+
+**Components:**
+
+| File | Responsibility |
+|------|----------------|
+| `analyzer.py` | `DiagnosisAnalyzer` - main entry point |
+| `blame.py` | `BlameAttribution` - retrieval vs generation vs chunking |
+| `chunking.py` | `ChunkingQualityAnalyzer` - detect split information |
+| `models.py` | `FailureMode` enum, `DiagnosisReport` |
+
+**Failure Modes:**
+```python
+class FailureMode(str, Enum):
+    EMPTY_RETRIEVAL = "empty_retrieval"
+    LOW_CONTEXT_RELEVANCE = "low_context_relevance"
+    MISSING_CONTEXT = "missing_context"
+    HALLUCINATION = "hallucination"
+    OFF_TOPIC_ANSWER = "off_topic_answer"
+    CHUNKING_SPLIT = "chunking_split_info_lost"
+    STALE_INDEX = "stale_index"
+    EMBEDDING_MISMATCH = "embedding_mismatch"
+```
+
+### 10. Synthetic Test Data (`synthesis/`) — NEW
+
+**Responsibility:** Auto-generate test cases from the knowledge base.
+
+**Key insight:** Teams don't have enough test cases. Synthetic generation bootstraps evaluation.
+
+**Components:**
+
+| File | Responsibility |
+|------|----------------|
+| `generator.py` | `SyntheticDataGenerator` - main entry point |
+| `question_gen.py` | `QuestionGenerator` - generate questions from documents |
+| `adversarial.py` | `AdversarialTestCaseGenerator` - tricky edge cases |
+| `models.py` | `SyntheticDataset`, `TestCase` |
+
+**Example:**
+```python
+from openagent_eval.synthesis import SyntheticDataGenerator
+
+generator = SyntheticDataGenerator(llm_provider=openai_provider)
+dataset = await generator.generate(
+    corpus_path="./knowledge_base/",
+    count=100,
+    adversarial=True
+)
+```
+
 ---
 
 ## Dependency Flow
@@ -369,19 +550,29 @@ cli/ → core/ → datasets/
              → providers/
              → reports/
              → plugins/
+             → corpus/      (NEW)
+             → diagnosis/   (NEW)
+             → synthesis/   (NEW)
+ui/ → core/  (same dependencies as cli/)
 ```
 
 **Rules:**
 1. `cli/` depends on everything
-2. `core/` depends on `datasets/`, `metrics/`, `providers/`, `reports/`
+2. `ui/` depends on `core/` (same as `cli/`)
+3. `core/` depends on `datasets/`, `metrics/`, `providers/`, `reports/`, `corpus/`, `diagnosis/`, `synthesis/`
 3. `metrics/`, `providers/`, `reports/` depend only on `utils/` and `types/`
-4. `exceptions/` depends on nothing
-5. `types/` depends on nothing
-6. No circular dependencies
+4. `corpus/` depends on `providers/` (for LLM-as-Judge) and `utils/`
+5. `diagnosis/` depends on `metrics/` (for metric results) and `utils/`
+6. `synthesis/` depends on `providers/` (for LLM generation) and `utils/`
+7. `exceptions/` depends on nothing
+8. `types/` depends on nothing
+9. No circular dependencies
 
 ---
 
 ## Evaluation Pipeline
+
+### Standard Pipeline (v1.0)
 
 ```
 ┌─────────────┐
@@ -430,6 +621,76 @@ cli/ → core/ → datasets/
 └─────────────┘
 ```
 
+### Production-Grade Pipeline (v0.3.0 - IMPLEMENTED)
+
+```
+┌─────────────────────┐
+│  0. Corpus Audit    │  ← Run BEFORE connecting to RAG
+│  (contradictions,   │
+│   staleness, etc.)  │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────┐
+│   Dataset   │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  Question   │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  Retriever  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────┐
+│ Retrieved Docs  │
+└──────┬──────────┘
+       │
+       ▼
+┌─────────────┐
+│     LLM     │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────┐
+│Generated Answer │
+└──────┬──────────┘
+       │
+       ▼
+┌─────────────────┐
+│ Evaluation     │
+│ Engine         │
+└──────┬──────────┘
+       │
+       ▼
+┌─────────────────┐
+│ NLI Scoring     │  ← Replaces word overlap
+│ (faithfulness,  │
+│  relevancy)     │
+└──────┬──────────┘
+       │
+       ▼
+┌─────────────────┐
+│   Metrics      │
+└──────┬──────────┘
+       │
+       ▼
+┌─────────────────┐
+│  Diagnosis     │  ← Blame attribution
+│  (retrieval vs │
+│   generation)  │
+└──────┬──────────┘
+       │
+       ▼
+┌─────────────┐
+│   Reports   │
+└─────────────┘
+```
+
 ---
 
 ## Exception Hierarchy
@@ -452,6 +713,13 @@ OpenAgentEvalError (base)
 ├── PluginError
 │   ├── PluginNotFoundError
 │   └── PluginLoadError
+├── CorpusError            # NEW
+│   ├── CorpusNotFoundError
+│   ├── CorpusValidationError
+│   └── CorpusAuditError
+├── DiagnosisError         # NEW
+│   ├── DiagnosisExecutionError
+│   └── BlameAttributionError
 └── CLIError
     ├── CommandError
     └── ValidationError

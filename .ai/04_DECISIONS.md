@@ -455,6 +455,170 @@
 
 ---
 
+### D017: Corpus-Level Evaluation as Step Zero
+
+**Date:** 2026-07-11
+**Status:** Accepted
+**Context:** Research shows 67% of "hallucinations" are actually extractive (faithfully reproducing wrong corpus data). Existing tools measure pipeline quality but never question the corpus itself.
+
+**Decision:** Add a Corpus Health Auditor that runs BEFORE connecting to RAG. This is Step Zero.
+
+**Rationale:**
+- Pipeline evaluation frameworks assume a coherent corpus
+- Cross-document contradictions, staleness, and duplicates go undetected
+- 38.4% of organizations cite "data that fails to update" as primary failure cause
+- No existing tool (RAGAS, DeepEval, TruLens) validates the corpus
+
+**Consequences:**
+- New `corpus/` package with analyzer components
+- New `oaeval audit` CLI command
+- New `CorpusConfig` in configuration
+- Corpus audit is optional but recommended before first RAG deployment
+
+**Alternatives Considered:**
+- Skip corpus validation: Rejected, leaves critical blind spot
+- Bundle with existing metrics: Rejected, different execution model (pre-RAG vs post-RAG)
+
+---
+
+### D018: NLI-Based Scoring for Faithfulness
+
+**Date:** 2026-07-11
+**Status:** Accepted
+**Context:** Current faithfulness metric uses word-overlap fallback, which is insufficient for production use. Need proper Natural Language Inference scoring.
+
+**Decision:** Add NLI-based scoring using DeBERTa NLI model as primary method, with Ragas and word-overlap as fallbacks.
+
+**Rationale:**
+- Word overlap is surface-level and misses semantic relationships
+- NLI models can verify whether claims are entailed by context
+- DeBERTa NLI achieves state-of-the-art on NLI benchmarks
+- Fallback chain: NLI → Ragas → Word Overlap (graceful degradation)
+
+**Consequences:**
+- New `metrics/nli/` package
+- New optional dependencies: `transformers`, `torch` (~500MB)
+- Faithfulness and Relevancy metrics upgraded
+- NLI is optional (graceful fallback if not installed)
+
+**Alternatives Considered:**
+- Ragas-only: Rejected, Ragas has its own limitations (LLM-as-Judge cost)
+- Word overlap only: Rejected, insufficient for production
+- Custom NLI model: Rejected, use established DeBERTa model
+
+---
+
+### D019: Blame Attribution for Failed Evaluations
+
+**Date:** 2026-07-11
+**Status:** Accepted
+**Context:** When RAG evaluations fail, teams don't know which component caused the failure (retrieval, generation, or chunking). This leads to wasted debugging time.
+
+**Decision:** Add a Component Diagnosis system that attributes blame to specific failure modes.
+
+**Rationale:**
+- 90% of production failures are retrieval problems (Zartis, 2026)
+- Teams instinctively reach for prompt engineering when the real issue is retrieval
+- Knowing which component failed saves hours of guesswork
+- Enables targeted fixes instead of random experimentation
+
+**Consequences:**
+- New `diagnosis/` package
+- New `oaeval diagnose` CLI command
+- New `FailureMode` enum with 8 failure types
+- Diagnosis runs after evaluation, not during
+
+**Alternatives Considered:**
+- Skip blame attribution: Rejected, leaves debugging gap
+- Manual analysis: Rejected, doesn't scale
+- Real-time diagnosis: Rejected, too complex for v1
+
+---
+
+### D020: Synthetic Test Data Generation
+
+**Date:** 2026-07-11
+**Status:** Accepted
+**Context:** Teams don't have enough test cases for comprehensive evaluation. Manual dataset creation doesn't scale.
+
+**Decision:** Add synthetic test data generation from the knowledge base.
+
+**Rationale:**
+- Manual dataset creation is time-consuming and incomplete
+- Synthetic generation bootstraps evaluation quickly
+- Adversarial test cases reveal edge cases
+- Augmentation expands existing datasets
+
+**Consequences:**
+- New `synthesis/` package
+- New `oaeval synth` CLI command
+- Requires LLM provider for question generation
+- Generated data needs human review for quality
+
+**Alternatives Considered:**
+- Manual dataset creation only: Rejected, doesn't scale
+- Import from external sources: Rejected, not always available
+- No synthetic data: Rejected, limits evaluation coverage
+
+---
+
+### D021: Separate Corpus Audit from Pipeline Evaluation
+
+**Date:** 2026-07-11
+**Status:** Accepted
+**Context:** Corpus audit is a fundamentally different operation from pipeline evaluation. It runs before RAG, not after.
+
+**Decision:** Keep corpus audit as a separate module (`corpus/`) with its own CLI command (`oaeval audit`), not integrated into the main evaluation pipeline.
+
+**Rationale:**
+- Different execution model (pre-RAG vs post-RAG)
+- Different inputs (corpus vs dataset)
+- Different outputs (health report vs metrics)
+- Can run independently without LLM or retriever
+- Cleaner separation of concerns
+
+**Consequences:**
+- `corpus/` is independent of `core/` pipeline
+- `oaeval audit` is a separate command from `oaeval run`
+- Corpus audit results are not part of evaluation reports
+- Can be run as a prerequisite check
+
+**Alternatives Considered:**
+- Integrate into main pipeline: Rejected, different execution model
+- Run as part of `oaeval run`: Rejected, confuses pre-RAG vs post-RAG
+- Separate package: Rejected, keep in same repo for cohesion
+
+---
+
+### D022: Hybrid CLI UI Architecture
+
+**Date:** 2026-07-11
+**Status:** Accepted
+**Context:** Need beautiful CLI output without breaking existing workflows. Users want both quick CLI evaluations and optional interactive dashboards.
+
+**Decision:** Hybrid approach — Rich banner for all commands, Textual TUI via `oaeval ui`.
+
+**Rationale:**
+- Zero breaking changes to existing CLI workflows
+- Opt-in interactivity for power users
+- Beautiful ASCII art banner for professional branding
+- Full Textual dashboard for interactive exploration
+- Best of both worlds: simple CLI + powerful TUI
+
+**Consequences:**
+- New `ui/` module for Textual application
+- New `cli/banner.py` for ASCII art banner
+- New optional dependencies: `textual`, `pyfiglet`
+- Standard CLI commands remain unchanged
+- `oaeval ui` launches interactive dashboard
+
+**Alternatives Considered:**
+- Replace entire CLI with Textual: Rejected, breaking change, higher complexity
+- Rich formatting only: Rejected, no interactive mode
+- Textual for all commands: Rejected, overkill for simple evaluations
+
+---
+
 ## Pending Decisions
 
 None at this time.

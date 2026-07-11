@@ -14,7 +14,7 @@ Before writing any code:
 
 # OpenAgent Eval
 
-## Product Specification (v1.0)
+## Product Specification (v0.3.0)
 
 ---
 
@@ -39,6 +39,8 @@ Developers can build these systems quickly, but they often have no reliable way 
 OpenAgent Eval solves this by providing a local-first, developer-friendly evaluation framework that runs entirely from the command line.
 
 The goal is to become the standard evaluation tool for AI developers, similar to how `pytest` became the standard testing framework for Python.
+
+**Production-Grade Vision:** Go beyond pipeline evaluation to validate the entire RAG stack — from corpus health through retrieval quality to generation faithfulness. Be the only tool that can tell you not just "your RAG scored 0.91" but "your RAG scored 0.91, but 23% of your corpus is stale and 3 documents contradict each other."
 
 ---
 
@@ -65,6 +67,18 @@ Current evaluation platforms often require cloud services, dashboards, expensive
 Many developers simply skip evaluation altogether.
 
 As AI systems become larger and more complex, reliable evaluation becomes essential.
+
+## The Production Problem
+
+Even with evaluation tools like RAGAS, DeepEval, or TruLens, production RAG systems fail silently:
+
+1. **Corpus degradation** — Documents become stale, contradictory, or duplicated. No tool detects this.
+2. **Silent failures** — The system scores 0.91 faithfulness while 23% of the corpus is outdated.
+3. **No blame attribution** — When answers are wrong, teams don't know if it's retrieval, generation, or chunking.
+4. **Manual evaluation doesn't scale** — Teams review samples by hand, introducing sampling bias.
+5. **No regression detection** — Changes to embedding models or prompts aren't automatically tested.
+
+**The gap:** Existing tools measure pipeline quality but never question the corpus itself. OpenAgent Eval will measure both.
 
 ---
 
@@ -102,6 +116,10 @@ The project should:
 * Produce reproducible reports.
 * Integrate easily into CI/CD pipelines.
 * Help developers improve their applications instead of only producing scores.
+* **Detect corpus-level issues before they become production failures**
+* **Provide blame attribution when things go wrong (retrieval vs generation vs chunking)**
+* **Generate synthetic test data to bootstrap evaluation**
+* **Score faithfulness with NLI-based methods, not just word overlap**
 
 ---
 
@@ -160,6 +178,93 @@ The tool should produce a detailed evaluation report without requiring any manua
 Version 1 focuses entirely on **RAG Evaluation**.
 
 Agent evaluation will be introduced later.
+
+---
+
+# Production-Grade RAG Evaluation (v0.3.0 - IMPLEMENTED)
+
+## The Problem
+
+Building a RAG system is easy. Knowing whether it actually works in production is hard.
+
+**Key findings from research (2026):**
+- 70-80% of enterprise RAG deployments never reach stable production
+- 90% of production failures are retrieval problems, not LLM problems
+- 67% of "hallucinations" are actually extractive (faithfully reproducing wrong corpus data)
+- 38.4% of organizations cite "data that fails to update" as primary failure cause
+- Existing tools (RAGAS, DeepEval, TruLens) measure pipeline quality but never question the corpus itself
+
+## The Blind Spot
+
+All existing RAG evaluation frameworks share a critical architectural limitation: they measure pipeline quality *conditional on* retrieved documents — they never question *what* was retrieved.
+
+This means:
+- A RAGAS score of 0.97 can coexist with answers built on stale, contradictory information
+- Cross-document contradictions go undetected
+- Divergent duplicates produce non-deterministic answers
+- Unmarked obsolescence silently degrades quality
+
+## Our Solution: Four New Capabilities
+
+### 1. Corpus Health Auditor (THE DIFFERENTIATOR)
+
+**What it does:** Scans the knowledge base *before* connecting to RAG to detect issues that no existing tool can see.
+
+**Checks performed:**
+- **Cross-document contradictions** — Two documents covering the same topic provide incompatible information
+- **Unmarked obsolescence** — Documents exist and are retrievable but describe states that have changed
+- **Divergent duplicates** — Same document exists in two slightly different versions (e.g., SharePoint vs Confluence)
+- **Thematic coverage gaps** — Missing topics in the knowledge base
+
+**Why it matters:** This is Step Zero before any serious enterprise RAG deployment. Pipeline evaluation frameworks assume a coherent corpus — they measure quality conditional on corpus health.
+
+### 2. LLM-as-Judge Metrics
+
+**What it does:** Replaces word-overlap fallbacks with proper NLI-based scoring for faithfulness and relevancy.
+
+**Components:**
+- NLI Judge using DeBERTa-based Natural Language Inference
+- Claim extractor to split answers into atomic claims
+- Evidence finder to match claims to supporting context
+- Generic LLM-as-Judge for custom quality dimensions
+
+### 3. Component Diagnosis (Blame Attribution)
+
+**What it does:** When something fails, tells the user WHERE it failed — retrieval, generation, or chunking.
+
+**Failure modes detected:**
+- Empty retrieval / Low context relevance
+- Missing context / Hallucination
+- Off-topic answers / Chunking split
+- Stale index / Embedding mismatch
+
+**Output:** Root cause breakdown with percentages and actionable recommendations.
+
+### 4. Synthetic Test Data Generator
+
+**What it does:** Auto-generates Q&A test cases and adversarial scenarios from the knowledge base.
+
+**Capabilities:**
+- Generate questions from document content
+- Create adversarial test cases (tricky questions, edge cases)
+- Augment existing datasets with new variations
+
+---
+
+# Updated Feature Matrix
+
+| Feature | v0.1.0 (Foundation) | v0.3.0 (Current) |
+|---------|---------------------|-------------------|
+| Retrieval Metrics | Context Precision, Recall, MRR, NDCG, Hit Rate | Same + LLM-as-Judge |
+| Generation Metrics | Faithfulness, Relevancy, Hallucination (word overlap) | Same + NLI-based scoring |
+| Corpus Validation | None | ✅ Contradiction, Staleness, Duplicate detection |
+| Component Diagnosis | Basic failure analysis | ✅ Full blame attribution |
+| Test Data | Manual datasets only | ✅ Synthetic generation |
+| Retriever Providers | ChromaDB only | ✅ 11 providers (Chroma, Qdrant, Pinecone, Weaviate, FAISS, pgvector, Elasticsearch, BM25, HTTP, Memory, Mock) |
+| NLI Metrics | None | ✅ DeBERTa-based faithfulness, relevancy scoring |
+| CLI Commands | init, run, report, compare, list, doctor | ✅ + validate, delete, diagnose, audit, synth, completion |
+| CI/CD Integration | None | Pytest plugin (planned) |
+| Production Monitoring | None | Live traffic sampling (planned) |
 
 ---
 
@@ -233,7 +338,22 @@ This architecture should remain modular so new metrics can be added without chan
 
 # Evaluation Categories
 
-## 1. Retrieval Evaluation
+## 1. Corpus-Level Evaluation (NEW)
+
+**Measure the health of the knowledge base itself — before connecting to RAG.**
+
+Checks:
+
+* Cross-document contradictions
+* Unmarked obsolescence (stale documents)
+* Divergent duplicates (same doc, different versions)
+* Thematic coverage gaps
+
+This is Step Zero. Pipeline evaluation frameworks assume a coherent corpus.
+
+---
+
+## 2. Retrieval Evaluation
 
 Measure how well the retriever selects relevant context.
 
@@ -249,14 +369,14 @@ Initial metrics:
 
 ---
 
-## 2. Generation Evaluation
+## 3. Generation Evaluation
 
 Measure answer quality.
 
 Metrics:
 
-* Faithfulness
-* Answer Relevancy
+* Faithfulness (NLI-based, not just word overlap)
+* Answer Relevancy (NLI-based)
 * Hallucination Detection
 * Semantic Similarity
 * Exact Match
@@ -264,10 +384,11 @@ Metrics:
 * BLEU
 * ROUGE
 * BERTScore
+* LLM-as-Judge (custom criteria)
 
 ---
 
-## 3. Performance Evaluation
+## 4. Performance Evaluation
 
 Measure runtime performance.
 
@@ -280,7 +401,7 @@ Track:
 
 ---
 
-## 4. Cost Evaluation
+## 5. Cost Evaluation
 
 Track:
 
@@ -299,6 +420,17 @@ Support:
 * Groq
 * OpenRouter
 * Ollama (token tracking only)
+
+---
+
+## 6. Component Diagnosis (NEW)
+
+When something fails, attribute blame to the specific component:
+
+* Retrieval failures (empty, low relevance, missing context)
+* Generation failures (hallucination, off-topic)
+* Chunking failures (info split across chunks)
+* Index failures (stale, embedding mismatch)
 
 ---
 
@@ -432,6 +564,64 @@ Check environment and dependencies.
 
 ---
 
+## Production-Grade Commands (v0.3.0 - IMPLEMENTED)
+
+```bash
+oaeval audit --corpus ./knowledge_base/
+```
+
+Audit corpus for contradictions, staleness, duplicates. Run BEFORE connecting to RAG.
+
+---
+
+```bash
+oaeval audit --corpus ./knowledge_base/ --checks contradiction,staleness
+```
+
+Audit with specific checks only.
+
+---
+
+```bash
+oaeval diagnose --report reports/eval_2024_01_15.json
+```
+
+Diagnose failures and attribute blame (retrieval vs generation vs chunking).
+
+---
+
+```bash
+oaeval synth --corpus ./knowledge_base/ --count 100
+```
+
+Generate synthetic test cases from corpus.
+
+---
+
+```bash
+oaeval synth --corpus ./knowledge_base/ --adversarial --count 50
+```
+
+Generate adversarial test cases.
+
+---
+
+```bash
+oaeval ui
+```
+
+Launch interactive TUI dashboard (Textual).
+
+---
+
+```bash
+oaeval ui --config config.yaml
+```
+
+Launch TUI with specific configuration.
+
+---
+
 # Configuration
 
 The framework should use YAML configuration.
@@ -453,6 +643,41 @@ metrics:
   - answer_relevancy
   - hallucination
   - latency
+```
+
+## Production-Grade Configuration (v0.3.0 - IMPLEMENTED)
+
+```yaml
+# Corpus audit (run BEFORE connecting to RAG)
+corpus:
+  path: ./knowledge_base/
+  checks:
+    - contradiction
+    - staleness
+    - duplicate
+    - coverage
+  llm_provider: openai  # for LLM-as-Judge contradiction detection
+  model: gpt-4o-mini
+
+# NLI-based scoring (replaces word overlap)
+metrics:
+  retrieval:
+    - context_precision
+    - context_recall
+    - mrr
+  generation:
+    - faithfulness  # now uses NLI when available
+    - answer_relevancy  # now uses NLI when available
+  performance:
+    - latency
+  cost:
+    - token_count
+
+# Diagnosis (run after evaluation)
+diagnosis:
+  enabled: true
+  blame_attribution: true
+  recommendations: true
 ```
 
 The configuration should be extensible.
@@ -501,7 +726,14 @@ Avoid tightly coupling metrics, providers, and report generators.
 
 # Future Roadmap
 
-Version 2:
+Version 1.0 (Stable Release):
+
+* Generic LLM-as-Judge for custom criteria
+* CI/CD Pytest Plugin
+* GitHub Actions workflow example
+* **Hybrid CLI UI** (Rich banner + Textual TUI dashboard)
+
+Version 2.0:
 
 * AI Agent Evaluation
 * Tool-call evaluation
@@ -509,8 +741,9 @@ Version 2:
 * Memory evaluation
 * Multi-agent evaluation
 * Trace analysis
+* Production Monitoring (live traffic sampling)
 
-Version 3:
+Version 3.0:
 
 * CI/CD integration
 * GitHub Action
@@ -564,13 +797,19 @@ This is exactly how tools like **pytest**, **ruff**, and **uv** became widely ad
 
 Don't reinvent evaluation metrics. Wrap the best existing libraries.
 
-### Phase 1
+### Phase 1 (Implemented)
 
 * **Ragas** → Faithfulness, Answer Relevancy
 * **DeepEval** → Hallucination, G-Eval metrics
 * **Sentence Transformers** → Embeddings & semantic similarity
 * **Hugging Face Evaluate** → BLEU, ROUGE, F1, Exact Match
 * **scikit-learn** → Precision, Recall, MRR calculations
+
+### Phase 9-12 (Implemented)
+
+* **transformers + torch** → DeBERTa NLI model for claim verification
+* **scikit-learn** → Document clustering for contradiction detection
+* **numpy** → Similarity calculations for duplicate detection
 
 Our framework orchestrates these tools behind a consistent interface.
 
@@ -582,26 +821,52 @@ Our framework orchestrates these tools behind a consistent interface.
 openagent-eval/
 
 ├── openagent_eval/
-│
+
 ├── cli/
-│
+
 ├── core/
 │   ├── pipeline.py
 │   ├── registry.py
 │   └── executor.py
-│
+
 ├── datasets/
-│
+
 ├── metrics/
-│
+│   ├── retrieval/        # Context precision, recall, MRR, NDCG
+│   ├── generation/       # Faithfulness, relevancy, hallucination
+│   ├── nli/              # NLI-based scoring (NEW)
+│   ├── performance/      # Latency tracking
+│   └── cost/             # Token counting
+
+├── corpus/               # NEW: Corpus Health Auditor
+│   ├── base.py           # BaseCorpusAnalyzer ABC
+│   ├── models.py         # CorpusIssue, AuditReport
+│   ├── contradiction.py  # Cross-document contradiction detection
+│   ├── staleness.py      # Outdated document detection
+│   ├── duplicates.py     # Divergent duplicate detection
+│   ├── coverage.py       # Thematic coverage analysis
+│   └── auditor.py        # CorpusAuditor orchestrator
+
+├── diagnosis/            # NEW: Component Diagnosis
+│   ├── analyzer.py       # DiagnosisAnalyzer
+│   ├── blame.py          # BlameAttribution
+│   ├── chunking.py       # ChunkingQualityAnalyzer
+│   └── models.py         # DiagnosisReport, FailureMode
+
+├── synthesis/            # NEW: Synthetic Test Data
+│   ├── generator.py      # SyntheticDataGenerator
+│   ├── question_gen.py   # QuestionGenerator
+│   ├── adversarial.py    # AdversarialTestCaseGenerator
+│   └── models.py         # SyntheticDataset, TestCase
+
 ├── providers/
-│
+
 ├── reports/
-│
+
 ├── plugins/
-│
+
 ├── utils/
-│
+
 └── config/
 ```
 
@@ -833,3 +1098,52 @@ result = evaluator.evaluate(...)
 ```
 
 without maintaining two separate codebases. This architecture is scalable and aligns well with the long-term OpenAgentHQ ecosystem.
+
+---
+
+# Hybrid CLI UI (v1.0 Planned)
+
+## Design Principle
+
+- **Standard CLI:** All existing commands (`oaeval evaluate`, `oaeval audit`, etc.) use Rich for beautiful output
+- **Interactive TUI:** `oaeval ui` launches Textual dashboard for power users
+- **Zero Breaking Changes:** Existing workflows continue to work unchanged
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  oaeval evaluate  →  Beautiful Rich output (no TUI)         │
+│  oaeval audit     →  Beautiful Rich output (no TUI)         │
+│  oaeval ui        →  Full Textual interactive dashboard     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Tech Stack Additions
+
+| Component | Technology | Reason |
+|-----------|------------|--------|
+| ASCII Art Banner | pyfiglet | Professional CLI branding |
+| Interactive TUI | Textual | Full keyboard-driven dashboard |
+
+## Dependencies
+
+```toml
+[project.optional-dependencies]
+ui = ["textual>=0.40", "pyfiglet>=1.0"]
+```
+
+## UI Module Structure
+
+```
+openagent_eval/
+├── cli/
+│   ├── banner.py        # ASCII art banner with Rich (NEW)
+│   └── commands/
+├── ui/                  # Textual TUI application (NEW)
+│   ├── __init__.py
+│   ├── app.py           # Main Textual App class
+│   ├── screens.py       # Dashboard screens (main, audit, evaluate, diagnose)
+│   ├── widgets.py       # Custom widgets (banner, results table, progress bars)
+│   └── styles.tcss      # Textual CSS for layout
+```

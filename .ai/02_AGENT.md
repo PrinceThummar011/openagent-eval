@@ -14,8 +14,8 @@
 | **Package** | openagent_eval |
 | **CLI** | oaeval |
 | **Purpose** | Open-source CLI framework for evaluating RAG systems and AI Agents |
-| **Phase** | v1 - RAG Evaluation Only |
-| **Status** | Pre-implementation |
+| **Phase** | v0.3.0 - Phases 1-12 Complete |
+| **Status** | Active Development |
 | **Source of Truth** | PROJECT.md |
 
 ---
@@ -90,19 +90,56 @@
 openagent-eval/
 ├── openagent_eval/
 │   ├── cli/              # CLI commands (Typer)
+│   │   ├── main.py       # Main CLI entry point
+│   │   ├── context.py    # CLI context
+│   │   └── commands/     # Individual commands
+│   │       ├── init.py
+│   │       ├── run.py
+│   │       ├── report.py
+│   │       ├── compare.py
+│   │       ├── list_evaluations.py
+│   │       ├── doctor.py
+│   │       ├── validate.py
+│   │       ├── delete.py
+│   │       ├── diagnose.py
+│   │       ├── audit.py
+│   │       └── synth.py
 │   ├── config/           # Configuration management
 │   ├── core/             # Core orchestration layer
-│   │   ├── __init__.py
 │   │   ├── engine.py     # Main evaluation engine
 │   │   ├── pipeline.py   # Evaluation pipeline
 │   │   ├── executor.py   # Task execution
 │   │   └── registry.py   # Plugin/component registry
-│   ├── datasets/         # Dataset loaders
+│   ├── datasets/         # Dataset loaders (JSON, JSONL, CSV, HuggingFace, PDF)
 │   ├── metrics/          # All evaluation metrics
+│   │   ├── retrieval/    # Context precision, recall, MRR, NDCG, hit rate
+│   │   ├── generation/   # Faithfulness, relevancy, hallucination, BLEU, ROUGE, F1
+│   │   ├── nli/          # NLI-based scoring (DeBERTa)
+│   │   ├── performance/  # Latency tracking
+│   │   └── cost/         # Token counting
+│   ├── corpus/           # Corpus Health Auditor
+│   │   ├── auditor.py    # CorpusAuditor orchestrator
+│   │   ├── contradiction.py  # Cross-document contradiction detection
+│   │   ├── staleness.py      # Outdated document detection
+│   │   ├── duplicates.py     # Divergent duplicate detection
+│   │   └── coverage.py       # Thematic coverage analysis
+│   ├── diagnosis/        # Component Diagnosis
+│   │   ├── analyzer.py   # DiagnosisAnalyzer
+│   │   ├── blame.py      # BlameAttribution
+│   │   ├── chunking.py   # ChunkingQualityAnalyzer
+│   │   └── models.py     # DiagnosisReport, FailureMode
+│   ├── synthesis/        # Synthetic Test Data
+│   │   ├── generator.py  # SyntheticDataGenerator
+│   │   ├── question_gen.py   # QuestionGenerator
+│   │   ├── adversarial.py    # AdversarialTestCaseGenerator
+│   │   └── models.py     # SyntheticDataset, TestCase
 │   ├── providers/        # LLM/Retriever adapters
-│   ├── reports/          # Report generation
+│   │   ├── factory.py    # Provider factory with lazy loading
+│   │   ├── llm/          # OpenAI, Gemini, Anthropic, Groq, OpenRouter, Ollama
+│   │   ├── retrievers/   # 11 providers: Chroma, Qdrant, Pinecone, Weaviate, FAISS, pgvector, Elasticsearch, BM25, HTTP, Memory, Mock
+│   │   └── embedders/    # Sentence Transformers, Mock
+│   ├── reports/          # Report generation (Terminal, Markdown, HTML, JSON)
 │   ├── plugins/          # External extensions
-│   ├── integrations/     # Third-party integrations
 │   ├── exceptions/       # Custom exception hierarchy
 │   ├── types/            # Shared type definitions
 │   └── utils/            # Shared utilities
@@ -111,30 +148,12 @@ openagent-eval/
 │   ├── integration/
 │   ├── fixtures/
 │   └── sample_data/
+├── docs/                 # 12 numbered design docs + provider docs + examples
 ├── pyproject.toml
 ├── README.md
-├── LICENSE
-├── CONTRIBUTING.md
 ├── ROADMAP.md
 ├── CHANGELOG.md
-├── ARCHITECTURE.md
-├── AGENT.md
-├── CONTEXT.md
-├── DECISIONS.md
-├── TASKS.md
-└── docs/
-    ├── 01_vision.md
-    ├── 02_problem_statement.md
-    ├── 03_product_requirements.md
-    ├── 04_architecture.md
-    ├── 05_project_structure.md
-    ├── 06_cli_spec.md
-    ├── 07_metric_system.md
-    ├── 08_plugin_system.md
-    ├── 09_coding_guidelines.md
-    ├── 10_development_plan.md
-    ├── 11_future_roadmap.md
-    └── examples.md
+└── CONTRIBUTING.md
 ```
 
 ### Module Responsibilities
@@ -144,12 +163,15 @@ openagent-eval/
 | `cli/` | Parse commands, delegate to core, display output |
 | `config/` | Load, validate, and manage YAML configuration |
 | `core/` | Orchestration layer (engine, pipeline, executor, registry) |
-| `datasets/` | Load evaluation data from JSON, JSONL, CSV, HuggingFace |
+| `datasets/` | Load evaluation data from JSON, JSONL, CSV, HuggingFace, PDF |
 | `metrics/` | Implement BaseMetric for all evaluation metrics |
-| `providers/` | Adapter pattern for LLMs (OpenAI, Gemini, Anthropic, etc.) |
+| `metrics/nli/` | NLI-based scoring (DeBERTa faithfulness, relevancy) |
+| `corpus/` | Corpus Health Auditor (contradiction, staleness, duplicates, coverage) |
+| `diagnosis/` | Component Diagnosis (blame attribution, failure modes) |
+| `synthesis/` | Synthetic Test Data (question generation, adversarial cases) |
+| `providers/` | Adapter pattern for LLMs (6) and Retrievers (11) + Embedders |
 | `reports/` | Generate Markdown, HTML, JSON, Terminal reports |
 | `plugins/` | User extensions via entry points |
-| `integrations/` | Third-party framework adapters |
 | `exceptions/` | Custom exception hierarchy |
 | `types/` | Shared type definitions and protocols |
 | `utils/` | Shared utilities, logging, helpers |
@@ -487,18 +509,63 @@ class MetricResult:
 
 | Command | Description |
 |---------|-------------|
-| `oaeval init` | Create configuration |
-| `oaeval run config.yaml` | Run evaluation |
+| `oaeval init` | Create configuration (interactive wizard) |
+| `oaeval run config.yaml` | Run evaluation (dry-run, metrics override) |
 | `oaeval report latest` | View latest report |
 | `oaeval compare exp1 exp2` | Compare experiments |
-| `oaeval list` | List previous evaluations |
-| `oaeval doctor` | Check environment and dependencies |
+| `oaeval list` | List previous evaluations (sorting, search) |
+| `oaeval doctor` | Check environment and dependencies (API tests) |
+| `oaeval validate config.yaml` | Validate configuration |
+| `oaeval delete <id>` | Delete evaluation reports |
+| `oaeval audit --corpus ./kb/` | Audit corpus for contradictions, staleness |
+| `oaeval diagnose --report report.json` | Diagnose failures and attribute blame |
+| `oaeval synth --corpus ./kb/ --count 100` | Generate synthetic test cases |
+| `oaeval completion <shell>` | Generate shell completion (bash, zsh, fish) |
+
+---
+
+## Hybrid CLI Architecture (Planned - Phase 13)
+
+### Design Principle
+
+- **Standard CLI:** All existing commands (`oaeval evaluate`, `oaeval audit`, etc.) use Rich for beautiful output
+- **Interactive TUI:** `oaeval ui` launches Textual dashboard for power users
+- **Zero Breaking Changes:** Existing workflows continue to work unchanged
+
+### Tech Stack Additions
+
+| Component | Technology | Reason |
+|-----------|------------|--------|
+| ASCII Art Banner | pyfiglet | Professional CLI branding |
+| Interactive TUI | Textual | Full keyboard-driven dashboard |
+
+### Dependencies
+
+```toml
+[project.optional-dependencies]
+ui = ["textual>=0.40", "pyfiglet>=1.0"]
+```
+
+### UI Module Structure
+
+```
+openagent_eval/
+├── cli/
+│   ├── banner.py        # ASCII art banner with Rich
+│   └── commands/
+├── ui/                  # Textual TUI application
+│   ├── __init__.py
+│   ├── app.py           # Main Textual App class
+│   ├── screens.py       # Dashboard screens (main, audit, evaluate, diagnose)
+│   ├── widgets.py       # Custom widgets (banner, results table, progress bars)
+│   └── styles.tcss      # Textual CSS for layout
+```
 
 ---
 
 ## Development Phases
 
-### Phase 1: Foundation
+### Phase 1: Foundation ✅
 - Project setup (uv, pyproject.toml)
 - Directory structure
 - Exception hierarchy
@@ -506,37 +573,90 @@ class MetricResult:
 - Configuration system (Pydantic v2 + YAML)
 - Basic pipeline architecture
 
-### Phase 2: Data Layer
+### Phase 2: Data Layer ✅
 - Dataset loaders (JSON, JSONL, CSV, HuggingFace)
 - Dataset validation
 - Data schema enforcement
 
-### Phase 3: Metrics
+### Phase 3: Metrics ✅
 - BaseMetric interface
 - Retrieval metrics (precision, recall, MRR, NDCG, etc.)
 - Generation metrics (faithfulness, relevancy, hallucination)
 - Classic metrics (BLEU, ROUGE, F1, Exact Match)
 
-### Phase 4: Reports
+### Phase 4: Reports ✅
 - Report generator interface
 - Terminal report (Rich)
 - Markdown report
 - HTML report (Jinja2)
 - JSON report
 
-### Phase 5: Providers
+### Phase 5: Providers ✅
 - LLM provider interface
-- OpenAI adapter
-- Gemini adapter
-- Anthropic adapter
+- OpenAI, Gemini, Anthropic, Groq, OpenRouter, Ollama adapters
 - Retriever adapter interface
 - Chroma adapter
 
-### Phase 6: Plugin System
+### Phase 6: Plugin System ✅
 - Plugin registry
 - Entry point discovery
 - User metric examples
 - Documentation
+
+### Phase 7: CLI Commands ✅
+- `oaeval init` (interactive wizard)
+- `oaeval run` (dry-run, metrics override)
+- `oaeval report`, `compare`, `list`, `doctor`
+- `oaeval validate`, `delete`
+- `oaeval diagnose`, `audit`, `synth`
+- Shell completion (bash, zsh, fish)
+- Global flags (`--quiet`, `--json`, `--no-color`, `--verbose`)
+- Config auto-discovery
+
+### Phase 8: Documentation ✅
+- 12 numbered design docs (vision → retrievers)
+- CONTRIBUTING.md, ROADMAP.md, CHANGELOG.md
+- CODE_OF_CONDUCT.md, SECURITY.md, SUPPORT.md, DEVELOPMENT.md
+- Provider-specific documentation
+- Examples and tutorials
+
+### Phase 9: Corpus Health Auditor ✅
+- `CorpusAuditor` orchestrator
+- `ContradictionDetector` — cross-document contradiction detection
+- `StalenessDetector` — unmarked obsolescence detection
+- `DuplicateDetector` — divergent duplicate detection
+- `CoverageAnalyzer` — thematic coverage analysis
+- `oaeval audit` CLI command
+
+### Phase 10: Component Diagnosis ✅
+- `DiagnosisAnalyzer` orchestrator
+- `BlameAttribution` — retrieval vs generation vs chunking
+- `ChunkingQualityAnalyzer` — chunking quality analysis
+- 8 failure mode detection
+- Actionable recommendations
+- `oaeval diagnose` CLI command
+
+### Phase 11: Synthetic Test Data ✅
+- `SyntheticDataGenerator` orchestrator
+- `QuestionGenerator` — question generation from documents
+- `AdversarialTestCaseGenerator` — adversarial test cases
+- `oaeval synth` CLI command
+
+### Phase 12: Advanced Providers & NLI Metrics ✅
+- 11 retriever providers (Chroma, Qdrant, Pinecone, Weaviate, FAISS, pgvector, Elasticsearch, BM25, HTTP, Memory, Mock)
+- Embedder abstraction (Sentence Transformers, Mock)
+- Score normalization (`_scoring.py`)
+- NLI metrics (NLIJudge, ClaimExtractor, EvidenceFinder)
+- PDF dataset loader
+
+### Phase 13: Hybrid CLI UI (Planned)
+- [ ] Add `pyfiglet` and `textual` to optional dependencies
+- [ ] Create `openagent_eval/cli/banner.py` — ASCII art banner with Rich
+- [ ] Create `openagent_eval/ui/` module structure
+- [ ] Implement Textual dashboard app
+- [ ] Create dashboard screens (main, audit, evaluate, diagnose)
+- [ ] Add custom widgets (banner, results table, progress bars)
+- [ ] Wire up `oaeval ui` command
 
 ---
 
