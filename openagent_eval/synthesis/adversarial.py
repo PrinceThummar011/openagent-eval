@@ -309,6 +309,10 @@ class AdversarialTestCaseGenerator:
             text = _re.sub(r",\s*([}\]])", r"\1", text)
             if "'" in text and '"' not in text:
                 text = text.replace("'", '"')
+            # Remove any control characters except newlines in strings
+            text = _re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]", "", text)
+            # Fix unescaped newlines in strings (between quotes)
+            text = _re.sub(r'(?<!\\)\n(?=([^"]*"[^"]*")*[^"]*$)', '\\n', text)
 
             data = json.loads(text)
 
@@ -338,12 +342,42 @@ class AdversarialTestCaseGenerator:
 
             return test_cases
 
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
+            # Fallback: extract question-answer pairs using regex
+            import re as _re
+
+            test_cases: list[TestCase] = []
+
+            # Try to find question-answer pairs in the response
+            qa_pattern = _re.compile(
+                r'\{\s*"question"\s*:\s*"([^"]+)"\s*,\s*"answer"\s*:\s*"([^"]+)"\s*\}',
+                _re.IGNORECASE,
+            )
+            matches = qa_pattern.findall(raw_response)
+
+            for question, answer in matches:
+                question = question.strip()
+                answer = answer.strip()
+                if question and answer:
+                    test_cases.append(
+                        TestCase(
+                            question=question,
+                            ground_truth=answer,
+                            context=context,
+                            test_type=test_type,
+                            source_document=source_document,
+                            chunk_index=chunk_index,
+                        )
+                    )
+
+            if test_cases:
+                return test_cases
+
+            # If regex also failed, raise the original error
             raise SynthesisExecutionError(
-                message=f"Failed to parse adversarial LLM response as JSON: {e}",
-                original_error=e,
+                message="Failed to parse adversarial LLM response",
                 details={
                     "response_preview": raw_response[:200],
                     "test_type": test_type.value,
                 },
-            ) from e
+            )
