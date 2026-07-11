@@ -107,6 +107,56 @@ class DatasetConfig(BaseModel):
     shuffle: bool = Field(False, description="Whether to shuffle the dataset")
 
 
+class CorpusCheckType(str, Enum):
+    """Types of corpus checks that can be performed."""
+
+    CONTRADICTION = "contradiction"
+    STALENESS = "staleness"
+    DUPLICATE = "duplicate"
+    COVERAGE = "coverage"
+
+
+class CorpusConfig(BaseModel):
+    """Corpus audit configuration.
+
+    Example:
+        ```yaml
+        corpus:
+          path: ./knowledge_base/
+          checks:
+            - contradiction
+            - staleness
+            - duplicate
+            - coverage
+          llm_provider: openai
+          model: gpt-4o-mini
+          max_documents: 1000
+          similarity_threshold: 0.92
+          staleness_days: 365
+        ```
+    """
+
+    path: str = Field(..., description="Path to the corpus directory or file")
+    checks: list[CorpusCheckType] = Field(
+        default_factory=lambda: list(CorpusCheckType),
+        description="Which checks to perform",
+    )
+    llm_provider: str | None = Field(
+        None, description="LLM provider for contradiction detection (LLM-as-Judge)"
+    )
+    model: str | None = Field(None, description="LLM model for contradiction detection")
+    max_documents: int = Field(1000, ge=1, description="Maximum documents to audit")
+    similarity_threshold: float = Field(
+        0.92, ge=0.0, le=1.0, description="Embedding similarity threshold for duplicate detection"
+    )
+    staleness_days: int = Field(
+        365, ge=1, description="Documents older than this many days are flagged as stale"
+    )
+    embedding_model: str = Field(
+        "all-MiniLM-L6-v2", description="Embedding model for duplicate detection"
+    )
+
+
 class ReportConfig(BaseModel):
     """Report configuration."""
 
@@ -129,6 +179,7 @@ class Config(BaseModel):
         default_factory=MetricsConfig, description="Metrics configuration"
     )
     report: ReportConfig = Field(default_factory=ReportConfig, description="Report configuration")
+    corpus: CorpusConfig | None = Field(None, description="Corpus audit configuration (optional)")
 
     # Global settings
     verbose: bool = Field(False, description="Enable verbose output")
