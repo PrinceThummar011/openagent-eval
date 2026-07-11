@@ -228,3 +228,82 @@ class TestAdversarialTestCaseGenerator:
         assert result[0].source_document == "doc.txt"
         assert result[0].chunk_index == 5
         assert result[0].context == "Test context."
+
+    @pytest.mark.asyncio
+    async def test_generate_json_with_trailing_comma(self) -> None:
+        """Test parsing JSON with trailing commas before closing bracket."""
+        llm_response = '[\n  {"question": "What is X?", "answer": "X is Y."},\n]'
+        mock_llm = _make_mock_llm(llm_response)
+        gen = AdversarialTestCaseGenerator(mock_llm)
+
+        result = await gen.generate(
+            context="Test context.",
+            test_type=TestCaseType.UNANSWERABLE,
+            count=1,
+        )
+
+        assert len(result) == 1
+        assert result[0].question == "What is X?"
+
+    @pytest.mark.asyncio
+    async def test_generate_json_with_extra_text_around(self) -> None:
+        """Test parsing JSON when LLM wraps it with extra text."""
+        llm_response = 'Here are unanswerable questions:\n[\n  {"question": "What is the budget?", "answer": ""}\n]\nLet me know if you need more.'
+        mock_llm = _make_mock_llm(llm_response)
+        gen = AdversarialTestCaseGenerator(mock_llm)
+
+        result = await gen.generate(
+            context="The project was completed.",
+            test_type=TestCaseType.UNANSWERABLE,
+            count=1,
+        )
+
+        assert len(result) == 1
+        assert "budget" in result[0].question.lower()
+
+    @pytest.mark.asyncio
+    async def test_generate_json_with_single_quotes(self) -> None:
+        """Test parsing JSON with single quotes instead of double quotes."""
+        llm_response = "[{'question': 'What is X?', 'answer': 'Not mentioned.'}]"
+        mock_llm = _make_mock_llm(llm_response)
+        gen = AdversarialTestCaseGenerator(mock_llm)
+
+        result = await gen.generate(
+            context="Test context.",
+            test_type=TestCaseType.MISLEADING,
+            count=1,
+        )
+
+        assert len(result) == 1
+        assert result[0].question == "What is X?"
+
+    @pytest.mark.asyncio
+    async def test_generate_json_in_markdown_code_block(self) -> None:
+        """Test parsing JSON wrapped in markdown code block."""
+        llm_response = '```json\n[\n  {"question": "Why did it fail?", "answer": "Text does not say."}\n]\n```'
+        mock_llm = _make_mock_llm(llm_response)
+        gen = AdversarialTestCaseGenerator(mock_llm)
+
+        result = await gen.generate(
+            context="It succeeded.",
+            test_type=TestCaseType.MISLEADING,
+            count=1,
+        )
+
+        assert len(result) == 1
+        assert "fail" in result[0].question.lower()
+
+    @pytest.mark.asyncio
+    async def test_generate_json_with_multiple_items_and_trailing_comma(self) -> None:
+        """Test parsing JSON with multiple items and trailing comma."""
+        llm_response = '[\n  {"question": "Q1?", "answer": ""},\n  {"question": "Q2?", "answer": ""},\n]'
+        mock_llm = _make_mock_llm(llm_response)
+        gen = AdversarialTestCaseGenerator(mock_llm)
+
+        result = await gen.generate(
+            context="Test.",
+            test_type=TestCaseType.UNANSWERABLE,
+            count=2,
+        )
+
+        assert len(result) == 2

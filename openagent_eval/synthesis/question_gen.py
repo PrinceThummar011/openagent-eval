@@ -143,12 +143,29 @@ class QuestionGenerator:
             SynthesisExecutionError: If parsing fails.
         """
         try:
+            import re as _re
+
             # Extract JSON from response (handle markdown code blocks)
             text = raw_response.strip()
             if text.startswith("```"):
                 # Remove markdown code fence
                 lines = text.split("\n")
                 text = "\n".join(lines[1:-1])
+
+            # Try to find JSON array in the response
+            # Look for the first [ and last ] to extract the JSON array
+            start_idx = text.find("[")
+            end_idx = text.rfind("]")
+            if start_idx != -1 and end_idx > start_idx:
+                text = text[start_idx : end_idx + 1]
+
+            # Fix common JSON issues from LLM output
+            # Remove trailing commas before ] or }
+            text = _re.sub(r",\s*([}\]])", r"\1", text)
+            # Replace single quotes with double quotes for JSON keys/values
+            # (only if the text doesn't already use double quotes properly)
+            if "'" in text and '"' not in text:
+                text = text.replace("'", '"')
 
             data = json.loads(text)
 
