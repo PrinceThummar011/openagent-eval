@@ -21,6 +21,7 @@ from openagent_eval.ui.streaming import (
 )
 from openagent_eval.ui.components.spinner import SpinnerWidget, ROTATING_TIPS
 from openagent_eval.ui.components.footer import StatusFooter
+from openagent_eval.ui.components.message_list import Message, MessageList, MessageRole
 from openagent_eval.ui.tools.eval import EvalResultPanel
 from openagent_eval.ui.tools.audit import AuditResultPanel
 from openagent_eval.ui.tools.diagnose import DiagnoseResultPanel
@@ -323,3 +324,146 @@ class TestStateTransitions:
         for state, transitions in STATE_TRANSITIONS.items():
             if state != StreamingState.IDLE:
                 assert StreamingState.IDLE in transitions, f"{state} cannot return to IDLE"
+
+
+class TestMessage:
+    """Tests for the Message dataclass."""
+
+    def test_message_creation(self):
+        """Test creating a message."""
+        msg = Message(role=MessageRole.USER, content="Hello")
+        assert msg.role == MessageRole.USER
+        assert msg.content == "Hello"
+        assert msg.timestamp is not None
+
+    def test_message_with_tool_name(self):
+        """Test creating a tool message with tool name."""
+        msg = Message(role=MessageRole.TOOL, content="Result", tool_name="eval")
+        assert msg.tool_name == "eval"
+        assert msg.is_tool_result
+
+    def test_message_without_tool_name(self):
+        """Test that non-tool messages are not tool results."""
+        msg = Message(role=MessageRole.ASSISTANT, content="Response")
+        assert msg.is_tool_result is False
+
+    def test_message_metadata(self):
+        """Test message with metadata."""
+        msg = Message(
+            role=MessageRole.TOOL,
+            content="Result",
+            metadata={"cost": 0.01, "tokens": 100}
+        )
+        assert msg.metadata["cost"] == 0.01
+        assert msg.metadata["tokens"] == 100
+
+
+class TestMessageList:
+    """Tests for the MessageList widget."""
+
+    def test_message_list_exists(self):
+        """Test that MessageList can be imported."""
+        assert MessageList is not None
+
+    def test_message_list_creation(self):
+        """Test creating a MessageList."""
+        ml = MessageList()
+        assert ml.message_count == 0
+        assert ml.line_count == 0
+
+    def test_message_list_max_messages(self):
+        """Test max messages limit."""
+        ml = MessageList(max_messages=3)
+        for i in range(5):
+            ml.add_message(Message(role=MessageRole.USER, content=f"Msg {i}"))
+        assert ml.message_count == 3
+
+    def test_add_message(self):
+        """Test adding a message."""
+        ml = MessageList()
+        ml.add_message(Message(role=MessageRole.USER, content="Hello"))
+        assert ml.message_count == 1
+
+    def test_add_messages_batch(self):
+        """Test adding multiple messages."""
+        ml = MessageList()
+        messages = [
+            Message(role=MessageRole.USER, content=f"Msg {i}")
+            for i in range(10)
+        ]
+        ml.add_messages(messages)
+        assert ml.message_count == 10
+
+    def test_clear_messages(self):
+        """Test clearing messages."""
+        ml = MessageList()
+        ml.add_message(Message(role=MessageRole.USER, content="Hello"))
+        ml.clear()
+        assert ml.message_count == 0
+        assert ml.line_count == 0
+
+    def test_get_message(self):
+        """Test getting a message by index."""
+        ml = MessageList()
+        msg = Message(role=MessageRole.USER, content="Hello")
+        ml.add_message(msg)
+        retrieved = ml.get_message(0)
+        assert retrieved is not None
+        assert retrieved.content == "Hello"
+
+    def test_get_message_invalid_index(self):
+        """Test getting message with invalid index."""
+        ml = MessageList()
+        retrieved = ml.get_message(0)
+        assert retrieved is None
+
+    def test_message_role_prefixes(self):
+        """Test that different roles have different prefixes."""
+        ml = MessageList()
+        ml.add_message(Message(role=MessageRole.USER, content="Hello"))
+        ml.add_message(Message(role=MessageRole.ASSISTANT, content="Hi"))
+        ml.add_message(Message(role=MessageRole.SYSTEM, content="System msg"))
+        ml.add_message(Message(role=MessageRole.TOOL, content="Tool result", tool_name="eval"))
+        assert ml.message_count == 4
+
+    def test_multi_line_message(self):
+        """Test message with multiple lines."""
+        ml = MessageList()
+        ml.add_message(Message(role=MessageRole.USER, content="Line 1\nLine 2\nLine 3"))
+        assert ml.message_count == 1
+        # Multi-line message should have more lines
+        assert ml.line_count > 1
+
+    def test_iter_messages(self):
+        """Test iterating over messages."""
+        ml = MessageList()
+        for i in range(5):
+            ml.add_message(Message(role=MessageRole.USER, content=f"Msg {i}"))
+        messages = list(ml)
+        assert len(messages) == 5
+
+    def test_len_messages(self):
+        """Test len() returns message count."""
+        ml = MessageList()
+        for i in range(3):
+            ml.add_message(Message(role=MessageRole.USER, content=f"Msg {i}"))
+        assert len(ml) == 3
+
+    def test_getitem_messages(self):
+        """Test indexing messages."""
+        ml = MessageList()
+        ml.add_message(Message(role=MessageRole.USER, content="First"))
+        ml.add_message(Message(role=MessageRole.USER, content="Second"))
+        assert ml[0].content == "First"
+        assert ml[1].content == "Second"
+
+    def test_auto_scroll_default(self):
+        """Test auto_scroll is enabled by default."""
+        ml = MessageList()
+        assert ml._auto_scroll is True
+
+    def test_set_auto_scroll(self):
+        """Test setting auto_scroll."""
+        ml = MessageList()
+        ml.set_auto_scroll(False)
+        assert ml._auto_scroll is False

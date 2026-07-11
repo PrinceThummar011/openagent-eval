@@ -457,6 +457,16 @@ DiagnoseResultPanel DataTable {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   Message List Widget (Virtual Scrolling)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+MessageList {
+    height: 1fr;
+    padding: 0 1;
+    background: $surface;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    Color Overrides (Dark Theme Support)
    ═══════════════════════════════════════════════════════════════════════════════ */
 
@@ -486,6 +496,10 @@ DiagnoseResultPanel DataTable {
     }
 
     StatusFooter {
+        background: $surface-darken-1;
+    }
+
+    MessageList {
         background: $surface-darken-1;
     }
 
@@ -528,6 +542,10 @@ DiagnoseResultPanel DataTable {
     }
 
     StatusFooter {
+        background: $surface-lighten-1;
+    }
+
+    MessageList {
         background: $surface-lighten-1;
     }
 
