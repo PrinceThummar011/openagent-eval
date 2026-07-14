@@ -295,23 +295,54 @@ class AdversarialTestCaseGenerator:
 
         test_cases: list[TestCase] = []
 
+        # Clean code blocks and normalize text
+        text = raw_response.strip()
+        if text.startswith("```"):
+            lines = text.split("\n")
+            text = "\n".join(lines[1:-1])
+
+        # Normalize Python-style single quotes to JSON double quotes,
+        # but only when text uses Python-style dict formatting (single-quoted keys),
+        # to avoid breaking apostrophes in valid JSON (e.g. "company's").
+        has_python_style = bool(_re.search(r"\{\s*'[^']*'\s*:", text))
+        if has_python_style:
+            text = text.replace("'", '"')
+
+        # Strategy 0: Try parsing as a single JSON object (non-array response)
+        try:
+            data = json.loads(text)
+            if isinstance(data, dict):
+                question = data.get("question", "").strip()
+                answer = data.get("answer", "").strip()
+                if question:
+                    test_cases.append(
+                        TestCase(
+                            question=question,
+                            ground_truth=answer,
+                            context=context,
+                            test_type=test_type,
+                            source_document=source_document,
+                            chunk_index=chunk_index,
+                        )
+                    )
+                    return test_cases
+        except (json.JSONDecodeError, ValueError):
+            pass
+
         # Strategy 1: Try to extract JSON array and parse it
         try:
-            text = raw_response.strip()
-            if text.startswith("```"):
-                lines = text.split("\n")
-                text = "\n".join(lines[1:-1])
-
             start_idx = text.find("[")
             end_idx = text.rfind("]")
             if start_idx != -1 and end_idx > start_idx:
-                text = text[start_idx : end_idx + 1]
+                array_text = text[start_idx : end_idx + 1]
+            else:
+                array_text = text
 
             # Clean the JSON
-            text = _re.sub(r",\s*([}\]])", r"\1", text)
-            text = _re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]", "", text)
+            array_text = _re.sub(r",\s*([}\]])", r"\1", array_text)
+            array_text = _re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]", "", array_text)
 
-            data = json.loads(text)
+            data = json.loads(array_text)
 
             if isinstance(data, list):
                 for item in data:
@@ -338,7 +369,7 @@ class AdversarialTestCaseGenerator:
         try:
             # Find all JSON objects in the response
             obj_pattern = _re.compile(r'\{[^{}]+\}', _re.DOTALL)
-            objects = obj_pattern.findall(raw_response)
+            objects = obj_pattern.findall(text)
 
             for obj_str in objects:
                 try:
@@ -373,7 +404,7 @@ class AdversarialTestCaseGenerator:
             r'\{\s*"question"\s*:\s*"([^"]+)"\s*,\s*"answer"\s*:\s*"([^"]+)"\s*\}',
             _re.IGNORECASE,
         )
-        matches = qa_pattern.findall(raw_response)
+        matches = qa_pattern.findall(text)
 
         for question, answer in matches:
             question = question.strip()
@@ -397,8 +428,8 @@ class AdversarialTestCaseGenerator:
         question_pattern = _re.compile(r'"question"\s*:\s*"([^"]+)"', _re.IGNORECASE)
         answer_pattern = _re.compile(r'"answer"\s*:\s*"([^"]+)"', _re.IGNORECASE)
 
-        questions = question_pattern.findall(raw_response)
-        answers = answer_pattern.findall(raw_response)
+        questions = question_pattern.findall(text)
+        answers = answer_pattern.findall(text)
 
         for q, a in zip(questions, answers):
             q = q.strip()
