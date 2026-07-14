@@ -6,7 +6,10 @@ readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.11"
 authors = [
-    {name = "OpenAgent Eval Contributors"}
+    {name = "Himanshu Kumar"}
+]
+Maintainers = [
+    {name = "OpenAgentHQ Team", email = "openagenthq@gmail.com"}
 ]
 keywords = ["rag", "evaluation", "ai", "llm", "metrics", "cli", "nli", "corpus-health", "diagnosis", "synthetic-data"]
 classifiers = [
