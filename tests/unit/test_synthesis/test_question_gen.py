@@ -128,7 +128,7 @@ class TestQuestionGenerator:
         mock_llm = _make_mock_llm(json.dumps({"question": "Test?"}))
         gen = QuestionGenerator(mock_llm)
 
-        with pytest.raises(SynthesisExecutionError, match="Expected JSON array"):
+        with pytest.raises(SynthesisExecutionError, match="Failed to parse"):
             await gen.generate(context="Test context.", count=1)
 
     @pytest.mark.asyncio
