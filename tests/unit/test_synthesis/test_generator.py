@@ -10,7 +10,7 @@ import pytest
 
 from openagent_eval.exceptions.synthesis import SynthesisExecutionError
 from openagent_eval.synthesis.generator import SyntheticDataGenerator, _chunk_text, _read_corpus
-from openagent_eval.synthesis.models import TestCase, TestCaseType
+from openagent_eval.synthesis.models import TestCaseType
 
 
 def _make_mock_llm(response: str | None = None) -> MagicMock:
