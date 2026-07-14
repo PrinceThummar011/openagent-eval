@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import re
-from pathlib import Path
-from unittest.mock import MagicMock, patch
 
-import pytest
 from typer.testing import CliRunner
 
 from openagent_eval.cli.main import app
