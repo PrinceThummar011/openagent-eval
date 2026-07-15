@@ -114,8 +114,8 @@ def main(
     try:
         import click
 
-        ctx = click.get_current_context(silent=True)
-        if ctx is not None and ctx.invoked_subcommand is None and not quiet:
+        click_ctx = click.get_current_context(silent=True)
+        if click_ctx is not None and click_ctx.invoked_subcommand is None and not quiet:
             create_mini_banner()
     except Exception:
         pass
