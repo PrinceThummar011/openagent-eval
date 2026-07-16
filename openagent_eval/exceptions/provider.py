@@ -38,9 +38,15 @@ class ProviderError(OpenAgentEvalError):
         self.provider_name = provider_name
 
     def __str__(self) -> str:
-        """Return standardized string: [provider] error_type: message."""
+        """Return standardized string: [provider] error_type: message (details)."""
         provider_prefix = f"[{self.provider_name}] " if self.provider_name else ""
-        return f"{provider_prefix}{self.error_type}: {self.message}"
+        base = f"{provider_prefix}{self.error_type}: {self.message}"
+        if self.details:
+            details_items = {k: v for k, v in self.details.items() if k != "provider_name"}
+            if details_items:
+                details_str = ", ".join(f"{k}={v}" for k, v in details_items.items())
+                return f"{base} ({details_str})"
+        return base
 
 
 class ProviderNotFoundError(ProviderError):

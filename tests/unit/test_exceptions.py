@@ -153,10 +153,12 @@ class TestProviderError:
         assert error.provider_name == "my_provider"
         assert error.available_providers == ["openai", "gemini"]
         assert error.error_type == "Provider Not Found"
-        assert (
-            str(error)
-            == "[my_provider] Provider Not Found: Provider not found: my_provider. Available providers: openai, gemini"
+        expected = (
+            "[my_provider] Provider Not Found: "
+            "Provider not found: my_provider. Available providers: openai, gemini "
+            "(available_providers=['openai', 'gemini'])"
         )
+        assert str(error) == expected
 
     def test_connection_error(self) -> None:
         """Test provider connection error."""
@@ -168,7 +170,7 @@ class TestProviderError:
         )
         assert error.original_error is original
         assert error.error_type == "Connection Error"
-        assert str(error) == "[gemini] Connection Error: Failed to connect"
+        assert str(error) == "[gemini] Connection Error: Failed to connect (original_error=Connection failed)"
 
     def test_execution_error(self) -> None:
         """Test provider execution error."""
@@ -180,7 +182,7 @@ class TestProviderError:
         )
         assert error.original_error is original
         assert error.error_type == "Execution Error"
-        assert str(error) == "[anthropic] Execution Error: API call failed"
+        assert str(error) == "[anthropic] Execution Error: API call failed (original_error=Execution failed)"
 
 
 class TestPluginError:
