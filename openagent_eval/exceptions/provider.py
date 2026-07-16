@@ -12,7 +12,10 @@ class ProviderError(OpenAgentEvalError):
         message: Human-readable error message.
         provider_name: Name of the provider that caused the error.
         details: Additional context about the error.
+        error_type: Human-readable error type label for standardized formatting.
     """
+
+    error_type: str = "Provider Error"
 
     def __init__(
         self,
@@ -34,9 +37,16 @@ class ProviderError(OpenAgentEvalError):
         super().__init__(message=message, details=error_details)
         self.provider_name = provider_name
 
+    def __str__(self) -> str:
+        """Return standardized string: [provider] error_type: message."""
+        provider_prefix = f"[{self.provider_name}] " if self.provider_name else ""
+        return f"{provider_prefix}{self.error_type}: {self.message}"
+
 
 class ProviderNotFoundError(ProviderError):
     """Raised when a requested provider cannot be found."""
+
+    error_type: str = "Provider Not Found"
 
     def __init__(
         self,
@@ -70,6 +80,8 @@ class ProviderConnectionError(ProviderError):
         original_error: The original exception that caused the connection failure.
     """
 
+    error_type: str = "Connection Error"
+
     def __init__(
         self,
         message: str,
@@ -99,6 +111,8 @@ class ProviderExecutionError(ProviderError):
     Attributes:
         original_error: The original exception that caused the failure.
     """
+
+    error_type: str = "Execution Error"
 
     def __init__(
         self,
