@@ -10,6 +10,7 @@ The adapter tracks token usage through Ollama's response metadata
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import httpx
@@ -20,7 +21,7 @@ from openagent_eval.exceptions.provider import (
     ProviderExecutionError,
 )
 from openagent_eval.providers.base.llm import LLMProvider
-from openagent_eval.providers.models import TokenUsage
+from openagent_eval.providers.models import LLMResponse, TokenUsage
 
 
 class OllamaGenerateRequest(BaseModel):
@@ -36,7 +37,9 @@ class OllamaGenerateRequest(BaseModel):
     model: str = Field(..., description="Model identifier")
     prompt: str = Field(..., description="Input prompt")
     stream: bool = Field(False, description="Enable streaming")
-    options: dict[str, Any] = Field(default_factory=dict, description="Generation options")
+    options: dict[str, Any] = Field(
+        default_factory=dict, description="Generation options"
+    )
 
 
 class OllamaGenerateResponse(BaseModel):
@@ -58,7 +61,9 @@ class OllamaGenerateResponse(BaseModel):
     eval_count: int = Field(0, description="Number of tokens generated")
     prompt_eval_count: int = Field(0, description="Number of prompt tokens")
     eval_duration: int = Field(0, description="Evaluation duration in nanoseconds")
-    prompt_eval_duration: int = Field(0, description="Prompt evaluation duration in nanoseconds")
+    prompt_eval_duration: int = Field(
+        0, description="Prompt evaluation duration in nanoseconds"
+    )
 
 
 class Ollama(LLMProvider):
@@ -188,7 +193,10 @@ class Ollama(LLMProvider):
                 message=f"Ollama API error: {e.response.status_code}",
                 provider_name=self.name,
                 original_error=e,
-                details={"status_code": e.response.status_code, "response": e.response.text},
+                details={
+                    "status_code": e.response.status_code,
+                    "response": e.response.text,
+                },
             ) from e
         except Exception as e:
             raise ProviderExecutionError(
@@ -241,25 +249,23 @@ class Ollama(LLMProvider):
             # Fallback to word-based approximation
             return len(text.split())
 
-    def generate_with_usage(
-        self, prompt: str, **kwargs: Any
-    ) -> tuple[str, TokenUsage]:
-        """Generate text and return token usage synchronously.
+    def generate_with_usage(self, prompt: str, **kwargs: Any) -> LLMResponse:
+        """Generate text and return a full LLMResponse synchronously.
 
         This is a helper method that generates text and extracts token usage
-        from Ollama's response metadata. For async usage, call generate()
-        directly.
+        from Ollama's response metadata. For async usage, call
+        generate_with_usage_async() directly.
 
         Args:
             prompt: The input prompt.
             **kwargs: Optional parameter overrides.
 
         Returns:
-            Tuple of (generated_text, token_usage).
+            LLMResponse with content, model, usage, provider, and latency.
 
         Note:
             This method is synchronous for convenience. For async contexts,
-            use generate() directly and track usage separately.
+            use generate_with_usage_async() instead.
         """
         # Build request payload
         model = kwargs.get("model", self._model)
@@ -282,12 +288,14 @@ class Ollama(LLMProvider):
             timeout=httpx.Timeout(self._timeout),
         ) as client:
             try:
+                start_time = time.monotonic()
                 response = client.post(
                     "/api/generate",
                     content=request.model_dump_json(),
                     headers={"Content-Type": "application/json"},
                 )
                 response.raise_for_status()
+                latency_ms = (time.monotonic() - start_time) * 1000
             except httpx.ConnectError as e:
                 raise ProviderConnectionError(
                     message=f"Failed to connect to Ollama server at {self._base_url}",
@@ -321,12 +329,18 @@ class Ollama(LLMProvider):
             total_tokens=total_tokens,
         )
 
-        return ollama_response.response, usage
+        return LLMResponse(
+            content=ollama_response.response,
+            model=model,
+            usage=usage,
+            provider=self.name,
+            latency_ms=latency_ms,
+        )
 
     async def generate_with_usage_async(
         self, prompt: str, **kwargs: Any
-    ) -> tuple[str, TokenUsage]:
-        """Generate text and return token usage asynchronously.
+    ) -> LLMResponse:
+        """Generate text and return a full LLMResponse asynchronously.
 
         This method generates text and extracts token usage from Ollama's
         response metadata for accurate cost tracking.
@@ -336,7 +350,7 @@ class Ollama(LLMProvider):
             **kwargs: Optional parameter overrides.
 
         Returns:
-            Tuple of (generated_text, token_usage).
+            LLMResponse with content, model, usage, provider, and latency.
         """
         model = kwargs.get("model", self._model)
         temperature = kwargs.get("temperature", self._temperature)
@@ -354,12 +368,14 @@ class Ollama(LLMProvider):
         )
 
         try:
+            start_time = time.monotonic()
             response = await self._client.post(
                 "/api/generate",
                 content=request.model_dump_json(),
                 headers={"Content-Type": "application/json"},
             )
             response.raise_for_status()
+            latency_ms = (time.monotonic() - start_time) * 1000
         except httpx.ConnectError as e:
             raise ProviderConnectionError(
                 message=f"Failed to connect to Ollama server at {self._base_url}",
@@ -393,7 +409,13 @@ class Ollama(LLMProvider):
             total_tokens=total_tokens,
         )
 
-        return ollama_response.response, usage
+        return LLMResponse(
+            content=ollama_response.response,
+            model=model,
+            usage=usage,
+            provider=self.name,
+            latency_ms=latency_ms,
+        )
 
     async def close(self) -> None:
         """Close the HTTP client and clean up resources."""
