@@ -85,8 +85,8 @@ class TestDatasetError:
 
     def test_invalid_dataset_error(self) -> None:
         """Test invalid dataset error."""
-        error = InvalidDatasetError("Invalid format", format="json", line_number=10)
-        assert error.format == "json"
+        error = InvalidDatasetError("Invalid format", data_format="json", line_number=10)
+        assert error.data_format == "json"
         assert error.line_number == 10
 
     def test_validation_error(self) -> None:
