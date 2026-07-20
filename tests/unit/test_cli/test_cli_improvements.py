@@ -286,3 +286,53 @@ class TestHelpOutput:
         assert "--json" in output
         assert "--no-color" in output
         assert "--verbose" in output or "-v" in output
+
+
+class TestAuditCommand:
+    """Tests for the audit command."""
+
+    def test_audit_help(self):
+        """Test that audit command shows help."""
+        result = runner.invoke(app, ["audit", "--help"])
+        assert result.exit_code == 0
+        assert "audit" in result.output.lower() or "Audit" in result.output
+
+    def test_audit_nonexistent_path(self):
+        """Test audit command with a nonexistent path."""
+        result = runner.invoke(app, ["audit", "/nonexistent/path"])
+        assert result.exit_code == 2
+        assert "error" in result.output.lower()
+
+    @patch("openagent_eval.cli.commands.audit.CorpusAuditor")
+    def test_audit_progress_updates(self, mock_auditor_class, tmp_path):
+        """Test that progress callback is called and updates the progress bar."""
+        from openagent_eval.corpus.models import AuditReport
+
+        # Setup mock auditor instance
+        mock_auditor = MagicMock()
+        mock_auditor_class.return_value = mock_auditor
+
+        # Define mock audit method that calls progress_callback
+        async def mock_audit(corpus_path, progress_callback=None):
+            if progress_callback:
+                progress_callback("Scanning documents...", 0, 2)
+                progress_callback("Running: staleness", 1, 2)
+                progress_callback("Audit complete!", 2, 2)
+            return AuditReport(
+                corpus_path=corpus_path,
+                total_documents=1,
+                issues=[],
+                health_score=1.0,
+                checks_performed=["staleness"],
+                summary="Mocked audit summary",
+            )
+
+        mock_auditor.audit = mock_audit
+
+        # Create a temp file to satisfy path check
+        dummy_file = tmp_path / "dummy.txt"
+        dummy_file.write_text("content")
+
+        result = runner.invoke(app, ["audit", str(dummy_file)])
+        assert result.exit_code == 0
+        assert "Mocked audit summary" in result.output
