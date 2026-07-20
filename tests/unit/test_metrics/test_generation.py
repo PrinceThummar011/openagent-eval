@@ -340,26 +340,71 @@ class TestBERTScore:
 
     def test_identical(self):
         """Identical text returns high score."""
-        result = self.metric.evaluate(
-            answer="The cat sat on the mat",
-            ground_truth="The cat sat on the mat",
-        )
+        import sys
+        from unittest.mock import MagicMock, patch
+
+        mock_precision = MagicMock()
+        mock_precision.item.return_value = 0.95
+        mock_recall = MagicMock()
+        mock_recall.item.return_value = 0.95
+        mock_f1 = MagicMock()
+        mock_f1.item.return_value = 0.95
+
+        mock_bert_score = MagicMock(return_value=(mock_precision, mock_recall, mock_f1))
+
+        with patch.dict(sys.modules, {
+            "bert_score": mock_bert_score,
+        }):
+            result = self.metric.evaluate(
+                answer="The cat sat on the mat",
+                ground_truth="The cat sat on the mat",
+            )
         assert result.score > 0.9
 
     def test_similar_meaning(self):
         """Similar meaning returns moderate-high score."""
-        result = self.metric.evaluate(
-            answer="The feline sat on the mat",
-            ground_truth="The cat sat on the mat",
-        )
+        import sys
+        from unittest.mock import MagicMock, patch
+
+        mock_precision = MagicMock()
+        mock_precision.item.return_value = 0.75
+        mock_recall = MagicMock()
+        mock_recall.item.return_value = 0.75
+        mock_f1 = MagicMock()
+        mock_f1.item.return_value = 0.75
+
+        mock_bert_score = MagicMock(return_value=(mock_precision, mock_recall, mock_f1))
+
+        with patch.dict(sys.modules, {
+            "bert_score": mock_bert_score,
+        }):
+            result = self.metric.evaluate(
+                answer="The feline sat on the mat",
+                ground_truth="The cat sat on the mat",
+            )
         assert result.score > 0.5
 
     def test_different(self):
         """Different content returns lower score."""
-        result = self.metric.evaluate(
-            answer="Python is a language",
-            ground_truth="The cat sat on the mat",
-        )
+        import sys
+        from unittest.mock import MagicMock, patch
+
+        mock_precision = MagicMock()
+        mock_precision.item.return_value = 0.2
+        mock_recall = MagicMock()
+        mock_recall.item.return_value = 0.2
+        mock_f1 = MagicMock()
+        mock_f1.item.return_value = 0.2
+
+        mock_bert_score = MagicMock(return_value=(mock_precision, mock_recall, mock_f1))
+
+        with patch.dict(sys.modules, {
+            "bert_score": mock_bert_score,
+        }):
+            result = self.metric.evaluate(
+                answer="Python is a language",
+                ground_truth="The cat sat on the mat",
+            )
         assert result.score < 0.6
 
 

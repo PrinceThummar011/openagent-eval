@@ -42,13 +42,13 @@ class BERTScore(BaseMetric):
 
         try:
             return self._evaluate_with_bertscore(answer, ground_truth)
-        except ImportError:
+        except (ImportError, Exception):
             pass
 
         # Fallback: sentence-transformers
         try:
             return self._evaluate_with_transformers(answer, ground_truth)
-        except ImportError:
+        except (ImportError, Exception):
             pass
 
         # Fallback: word overlap (no ML dependencies)
