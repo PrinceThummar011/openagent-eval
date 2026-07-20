@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING
+from unittest.mock import MagicMock, patch
 
 from typer.testing import CliRunner
 
