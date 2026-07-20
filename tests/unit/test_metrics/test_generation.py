@@ -173,6 +173,12 @@ class TestSemanticSimilarity:
 
     def test_identical_meaning(self):
         """Same meaning returns high score."""
+        try:
+            from sentence_transformers import SentenceTransformer
+            SentenceTransformer("all-MiniLM-L6-v2")
+        except (ImportError, Exception):
+            pytest.skip("sentence-transformers is not available or model download failed")
+
         result = self.metric.evaluate(
             answer="The car is red",
             ground_truth="The automobile is red",
@@ -181,6 +187,12 @@ class TestSemanticSimilarity:
 
     def test_different_meaning(self):
         """Different meaning returns lower score."""
+        try:
+            from sentence_transformers import SentenceTransformer
+            SentenceTransformer("all-MiniLM-L6-v2")
+        except (ImportError, Exception):
+            pytest.skip("sentence-transformers is not available or model download failed")
+
         result = self.metric.evaluate(
             answer="The sky is blue",
             ground_truth="Python is a programming language",
