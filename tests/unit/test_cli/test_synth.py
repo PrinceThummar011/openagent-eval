@@ -41,6 +41,25 @@ def test_create_provider_uses_offline_mock_provider() -> None:
     assert response.model == "synthetic-test-model"
 
 
+def test_mock_provider_never_instantiates_openai(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Regression: --llm-provider mock must NOT create an OpenAI provider.
+
+    Prior to the fix, the mock case fell back to OpenAIProvider, which
+    required API keys and could incur real API costs.  This test verifies
+    that the OpenAI constructor is never called when provider='mock'.
+    """
+    from unittest.mock import patch
+
+    openai_init = patch(
+        "openagent_eval.providers.llm.openai.AsyncOpenAI", autospec=True
+    )
+    with openai_init as mock_openai_cls:
+        provider = _create_provider("mock", "test-model")
+
+    assert isinstance(provider, MockLLMProvider)
+    mock_openai_cls.assert_not_called()
+
+
 @pytest.fixture
 def fake_generator(monkeypatch: pytest.MonkeyPatch) -> dict:
     """Replace SyntheticDataGenerator so no LLM/network call is ever made.
