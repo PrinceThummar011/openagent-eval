@@ -44,7 +44,7 @@ class SemanticSimilarity(BaseMetric):
 
         try:
             return self._evaluate_with_transformers(answer, ground_truth)
-        except ImportError:
+        except (ImportError, Exception):
             pass
 
         # Fallback: word overlap

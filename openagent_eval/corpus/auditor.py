@@ -7,7 +7,7 @@ into a single AuditReport.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from openagent_eval.corpus.base import BaseCorpusAnalyzer
 from openagent_eval.corpus.contradiction import ContradictionDetector
@@ -73,11 +73,16 @@ class CorpusAuditor:
         self.embedding_model = embedding_model
         self.max_documents = max_documents
 
-    async def audit(self, corpus_path: str) -> AuditReport:
+    async def audit(
+        self,
+        corpus_path: str,
+        progress_callback: Callable[[str, int, int], None] | None = None,
+    ) -> AuditReport:
         """Run a full corpus audit.
 
         Args:
             corpus_path: Path to the corpus directory or file.
+            progress_callback: Optional callback for reporting audit progress.
 
         Returns:
             AuditReport with all detected issues.
@@ -91,6 +96,13 @@ class CorpusAuditor:
         if not path.exists():
             raise CorpusNotFoundError(corpus_path=corpus_path)
 
+        # Build analyzer list
+        analyzers = self._build_analyzers()
+        total_steps = len(analyzers) + 1
+
+        if progress_callback:
+            progress_callback("Scanning documents...", 0, total_steps)
+
         # Load documents
         documents = self._load_documents(path)
 
@@ -100,12 +112,11 @@ class CorpusAuditor:
                 corpus_path=corpus_path,
             )
 
-        # Build analyzer list
-        analyzers = self._build_analyzers()
-
         # Run analyzers
         reports: list[AuditReport] = []
-        for analyzer in analyzers:
+        for i, analyzer in enumerate(analyzers):
+            if progress_callback:
+                progress_callback(f"Running: {analyzer.name}", i + 1, total_steps)
             try:
                 report = await analyzer.analyze(documents)
                 reports.append(report)
@@ -118,6 +129,9 @@ class CorpusAuditor:
                     analyzer_name=analyzer.name,
                     original_error=e,
                 ) from e
+
+        if progress_callback:
+            progress_callback("Audit complete!", total_steps, total_steps)
 
         # Merge reports
         return self._merge_reports(reports, corpus_path, len(documents))

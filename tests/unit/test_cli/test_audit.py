@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-from unittest.mock import AsyncMock, patch
+from unittest.mock import ANY, AsyncMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -207,7 +207,7 @@ class TestAuditIntegration:
         result = runner.invoke(app, ["audit", str(corpus_dir)])
 
         assert result.exit_code == 0
-        mock_auditor.audit.assert_awaited_once_with(str(corpus_dir))
+        mock_auditor.audit.assert_awaited_once_with(str(corpus_dir), progress_callback=ANY)
 
     @patch("openagent_eval.cli.commands.audit.CorpusAuditor")
     def test_audit_corpus_not_found_error(self, mock_auditor_cls, corpus_dir):

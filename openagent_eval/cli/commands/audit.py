@@ -222,9 +222,11 @@ def audit_command(
     ) as progress:
         task = progress.add_task("Loading corpus...", total=None)
 
-        progress.update(task, description="Scanning documents...")
+        def progress_callback(description: str, completed: int, total: int) -> None:
+            progress.update(task, description=description, completed=completed, total=total)
+
         try:
-            report = asyncio.run(auditor.audit(corpus_path))
+            report = asyncio.run(auditor.audit(corpus_path, progress_callback=progress_callback))
         except CorpusNotFoundError as e:
             console.print(f"[red]Error:[/red] {e.message}")
             raise typer.Exit(code=2) from e

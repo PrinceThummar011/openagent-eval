@@ -51,7 +51,11 @@ class _CaptureAuditor:
     def __init__(self, **kwargs: object) -> None:
         type(self).captured = dict(kwargs)
 
-    async def audit(self, corpus_path: str) -> AuditReport:
+    async def audit(
+        self,
+        corpus_path: str,
+        progress_callback: object | None = None,
+    ) -> AuditReport:
         type(self).captured["corpus_path"] = corpus_path
         return AuditReport(corpus_path=corpus_path, total_documents=0)
 
