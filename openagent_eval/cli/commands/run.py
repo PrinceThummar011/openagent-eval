@@ -121,9 +121,9 @@ def run_command(
         progress.update(task, description="Loading dataset...")
         dataset_items = load_dataset_for_run(config)
         total_items = len(dataset_items)
-        progress.update(task, description=f"Loaded {total_items} items", completed=1, total=1)
+        progress.update(task, description=f"Loaded {total_items} items")
 
-        progress.update(task, description=f"Running evaluation ({total_items} items)...", total=total_items)
+        progress.update(task, description=f"Running evaluation ({total_items} items)...", total=total_items, completed=0)
         report = execute_evaluation(config, dataset_items)
         progress.update(task, completed=total_items)
 
@@ -143,7 +143,7 @@ def run_command(
             format_file = output_dir / f"{report_path.stem}{ext}"
             generator.generate_to_file(report, format_file)
 
-        progress.update(task, description="Complete!", completed=total_items)
+        progress.update(task, description="Complete!")
 
     elapsed = time.time() - start_time
 
