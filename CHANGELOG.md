@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 
-- **Mock Provider Regression** — `oaeval synth --llm-provider mock` now correctly uses `MockLLMProvider` instead of falling back to `OpenAIProvider`, preventing unexpected API key requirements and potential API costs (#40)
+- **Mock Provider Regression Test** — add regression test verifying that `--llm-provider mock` never falls back to `OpenAIProvider` (#40)
 - **Chunking Metadata Usage** — `ChunkingQualityAnalyzer.analyze()` now uses the `metadata` parameter to perform more informed analysis: checks chunk size deviation from expected, detects excessive character overlap, and adjusts empty chunk thresholds (#65)
 
 ---

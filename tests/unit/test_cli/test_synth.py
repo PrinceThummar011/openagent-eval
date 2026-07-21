@@ -41,7 +41,7 @@ def test_create_provider_uses_offline_mock_provider() -> None:
     assert response.model == "synthetic-test-model"
 
 
-def test_mock_provider_never_instantiates_openai(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_mock_provider_never_instantiates_openai() -> None:
     """Regression: --llm-provider mock must NOT create an OpenAI provider.
 
     Prior to the fix, the mock case fell back to OpenAIProvider, which
