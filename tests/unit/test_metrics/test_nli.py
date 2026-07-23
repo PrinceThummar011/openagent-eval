@@ -344,6 +344,16 @@ class TestLLMJudgeMetric:
         score = metric._parse_score('{"score": "high"}')
         assert score == 0.5
 
+    def test_llm_judge_parse_score_malformed_json_falls_back(self):
+        metric = LLMJudgeMetric(provider=self.mock_provider)
+        score = metric._parse_score('{"score" 0.85}')
+        assert score == 0.5
+
+    def test_llm_judge_parse_score_malformed_json_falls_back_to_labeled(self):
+        metric = LLMJudgeMetric(provider=self.mock_provider)
+        score = metric._parse_score('{"score" 0.85} Score: 0.85')
+        assert score == 0.85
+
     def test_llm_judge_parse_score_ten_point_scale(self):
         metric = LLMJudgeMetric(provider=self.mock_provider)
         score = metric._parse_score('{"score": 8.5}')
