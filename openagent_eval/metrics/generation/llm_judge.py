@@ -20,7 +20,8 @@ _JSON_SCORE_INSTRUCTION = (
     'Respond with ONLY a JSON object on a single line: {{"score": <number from 0.0 to 1.0>}}'
 )
 _JSON_FENCE_RE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL | re.IGNORECASE)
-_SCORE_LABEL_RE = re.compile(r"score[\"'\s:]*(\d+\.?\d*)", re.IGNORECASE)
+_JSON_OBJECT_RE = re.compile(r"\{[^{}]*\}")
+_SCORE_LABEL_RE = re.compile(r"score\s*[:=]\s*(\d+\.?\d*)", re.IGNORECASE)
 _BARE_DECIMAL_RE = re.compile(r"^\s*(\d+\.?\d*)\s*$")
 
 
@@ -224,6 +225,9 @@ class LLMJudgeMetric(BaseMetric):
         fence_match = _JSON_FENCE_RE.search(text)
         if fence_match:
             candidates.append(fence_match.group(1))
+        obj_match = _JSON_OBJECT_RE.search(text)
+        if obj_match:
+            candidates.append(obj_match.group())
         candidates.append(text)
         return candidates
 
